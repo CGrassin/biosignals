@@ -1,0 +1,4 @@
+(sym_lib_table
+  (lib (name C10418)(type Legacy)(uri ${KIPRJMOD}/C10418.lib)(options "")(descr ""))
+  (lib (name BioElectricalSensor-rescue)(type Legacy)(uri ${KIPRJMOD}/BioElectricalSensor-rescue.lib)(options "")(descr ""))
+)
