@@ -82,7 +82,6 @@
 #define ADS1x9x_REG_CONFIG3_PD_BIAS        0b00000100 /* BIAS buffer power powered */
 #define ADS1x9x_REG_CONFIG3_BIAS_LOFF_SENS 0b00000010 /* BIAS sense function enabled. */
 #define ADS1x9x_REG_CONFIG3_BIAS_STAT      0b00000001 /* BIAS lead-off status connected. */
-
 // LOFF
 #define ADS1x9x_REG_LOFF_COMP_TH_95 0b00000000
 #define ADS1x9x_REG_LOFF_COMP_TH_92_5 0b00100000

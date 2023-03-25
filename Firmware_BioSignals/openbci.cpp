@@ -222,17 +222,17 @@ void OpenBCI::processCMD() {
       }
       break;
     case OPENBCI_MISC_QUERY_REGISTER_SETTINGS:
-      if(ads->isContReading()) {
+      if(!ads->isContReading()) {
         serial->println("Board ADS Registers");
         for(int i = 0; i < 24; i++){
           // printRegisterName(i); TODO
-          printHex(i);
+          // serial->print(", ");
+          printHex(i);  
           serial->print(", ");
           printHex(ads->regData[i]);
           serial->print(", ");
           for (int j = 0; j < 8; j++) {
-            char buf[3];
-            // printAll(itoa(bitRead(regData[_address + i], 7 - j), buf, DEC)); TODO
+            serial->print((ads->regData[i] >> j) & 0x01);
             if (j != 7)
               serial->print(", ");
           }
