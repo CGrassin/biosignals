@@ -1,12 +1,11 @@
 #include <SPI.h>
 #include <SdFat.h>
-#include "ads129x.h"
 #include "openbci.h"
 
 // Type of ADC:
-// 0 for ADS1194, ADS1196, ADS1198.
+// 0 for ADS1194, ADS1196, ADS1198 (UNTESTED).
 // 1 for ADS1294, ADS1294R, ADS1296, ADS1296R, ADS1298, ADS1298R.
-// 2 for ADS1299, ADS1299-4, ADS1299-6.
+// 2 for ADS1299, ADS1299-4, ADS1299-6 (UNTESTED).
 #define ADS_CHIP_TYPE 1
 
 // Pinout for U2 (STM32F103C8Tx)
@@ -54,10 +53,13 @@ HardwareSerial BT_SERIAL(PIN_BT_TX, PIN_BT_RX);
 
 SPIClass SPI1_FE(PIN_SPI1_MOSI,PIN_SPI1_MISO,PIN_SPI1_SCLK);
 #if ADS_CHIP_TYPE == 0
+  #include "ads119x.h"
   ADS119x ads = ADS119x(PIN_FE_CS, PIN_FE_DRDY, PIN_FE_RESET, &SPI1_FE);
 #elif ADS_CHIP_TYPE == 1
+  #include "ads129x.h"
   ADS129x ads = ADS129x(PIN_FE_CS, PIN_FE_DRDY, PIN_FE_RESET, &SPI1_FE);
 #else
+  #include "ads1299.h"
   ADS1299 ads = ADS1299(PIN_FE_CS, PIN_FE_DRDY, PIN_FE_RESET, &SPI1_FE);
 #endif
 OpenBCI openbci = OpenBCI(&ads, &USB_SERIAL);

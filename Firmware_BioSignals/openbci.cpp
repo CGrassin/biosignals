@@ -70,13 +70,16 @@ bool OpenBCI::isSingleCharCmd(char cmd) {
    cmd == OPENBCI_CHANNEL_DEFAULT_ALL_SET || cmd == OPENBCI_CHANNEL_DEFAULT_ALL_REPORT;
 }
 
-void OpenBCI::testSignals(uint8_t config2) {
-  // Switch all channel on
+void OpenBCI::testSignals(uint8_t config2, bool shorted) {
+  // Configure all channels
   for(int i = 0; i < 8; i++){
-    ads->switch_channel(i, true); // turn on
-    ads->WREG(ADS1x9x_REG_CH1SET+i, ads->regData[ADS1x9x_REG_CH1SET+i] & ~ADS1x9x_REG_CHnSET_MUX_MASK | ADS1x9x_REG_CHnSET_MUX_TEST); // switch mux to test    
+    if(shorted)
+      ads->WREG(ADS1x9x_REG_CH1SET+i, (ads->regData[ADS1x9x_REG_CH1SET+i] & ~ADS1x9x_REG_CHnSET_MUX_MASK) | ADS1x9x_REG_CHnSET_MUX_SHORTED | ADS1x9x_REG_CHnSET_PD); // switch mux to test    
+    else
+      ads->WREG(ADS1x9x_REG_CH1SET+i, (ads->regData[ADS1x9x_REG_CH1SET+i] & ~ADS1x9x_REG_CHnSET_MUX_MASK) | ADS1x9x_REG_CHnSET_MUX_TEST | ADS1x9x_REG_CHnSET_PD); // switch mux to test    
   }
-  ads->WREG(ADS1x9x_REG_CONFIG2, ADS129x_REG_CONFIG2_INT_TEST | config2);
+  ads->WREG(ADS1x9x_REG_CONFIG2, ADS1x9x_REG_CONFIG2_INT_TEST | config2);
+
   if(!ads->isContReading())
     serial->print(OPENBCI_CMD_TESTSIGNAL_SUCCESS_MSG);
 }
@@ -104,53 +107,25 @@ void OpenBCI::processCMD() {
       break;    
 
     case OPENBCI_CHANNEL_OFF_1:
-      ads->switch_channel(0, false);
-      break;
     case OPENBCI_CHANNEL_OFF_2:
-      ads->switch_channel(1, false);
-      break;
     case OPENBCI_CHANNEL_OFF_3:
-      ads->switch_channel(2, false);
-      break;
     case OPENBCI_CHANNEL_OFF_4:
-      ads->switch_channel(3, false);
-      break;
     case OPENBCI_CHANNEL_OFF_5:
-      ads->switch_channel(4, false);
-      break;
     case OPENBCI_CHANNEL_OFF_6:
-      ads->switch_channel(5, false);
-      break;
     case OPENBCI_CHANNEL_OFF_7:
-      ads->switch_channel(6, false);
-      break;
     case OPENBCI_CHANNEL_OFF_8:
-      ads->switch_channel(7, false);
+      ads->switch_channel(getChannelFromCommand(cmdBuffer[0]), false);
       break;
 
     case OPENBCI_CHANNEL_ON_1:
-      ads->switch_channel(0, true);
-      break;
     case OPENBCI_CHANNEL_ON_2:
-      ads->switch_channel(1, true);
-      break;
     case OPENBCI_CHANNEL_ON_3:
-      ads->switch_channel(2, true);
-      break;
     case OPENBCI_CHANNEL_ON_4:
-      ads->switch_channel(3, true);
-      break;
     case OPENBCI_CHANNEL_ON_5:
-      ads->switch_channel(4, true);
-      break;
     case OPENBCI_CHANNEL_ON_6:
-      ads->switch_channel(5, true);
-      break;
     case OPENBCI_CHANNEL_ON_7:
-      ads->switch_channel(6, true);
-      break;
     case OPENBCI_CHANNEL_ON_8:
-      ads->switch_channel(7, true);
+      ads->switch_channel(getChannelFromCommand(cmdBuffer[0]), true);
       break;
 
     case OPENBCI_STREAM_START:
@@ -161,82 +136,148 @@ void OpenBCI::processCMD() {
       break;
 
     case OPENBCI_TEST_SIGNAL_CONNECT_TO_DC:
-      testSignals(ADS129x_REG_CONFIG2_TEST_FREQ_DC);
+      testSignals(ADS1x9x_REG_CONFIG2_TEST_FREQ_DC, false);
       break;
-    // case OPENBCI_TEST_SIGNAL_CONNECT_TO_GROUND:
-    //   testSignals(ADS129x_REG_CONFIG2_TEST_FREQ_DC);
-    //   break;    
+    case OPENBCI_TEST_SIGNAL_CONNECT_TO_GROUND:
+      testSignals(0,true);
+      break;    
     case OPENBCI_TEST_SIGNAL_CONNECT_TO_PULSE_1X_FAST:
-      testSignals(ADS129x_REG_CONFIG2_TEST_FREQ_FAST);
+      testSignals(ADS1x9x_REG_CONFIG2_TEST_FREQ_FAST, false);
       break;
     case OPENBCI_TEST_SIGNAL_CONNECT_TO_PULSE_2X_FAST:
-      testSignals(ADS129x_REG_CONFIG2_TEST_AMP | ADS129x_REG_CONFIG2_TEST_FREQ_FAST);
+      testSignals(ADS1x9x_REG_CONFIG2_TEST_AMP | ADS1x9x_REG_CONFIG2_TEST_FREQ_FAST, false);
       break;
     case OPENBCI_TEST_SIGNAL_CONNECT_TO_PULSE_1X_SLOW:
-      testSignals(0);
+      testSignals(0, false);
       break;
     case OPENBCI_TEST_SIGNAL_CONNECT_TO_PULSE_2X_SLOW:
-      testSignals(ADS129x_REG_CONFIG2_TEST_AMP);
+      testSignals(ADS1x9x_REG_CONFIG2_TEST_AMP, false);
       break;
 
-    case OPENBCI_CHANNEL_CMD_SET:
+    case OPENBCI_CHANNEL_CMD_SET: 
       {
-        uint8_t channel = cmdBuffer[1] - OPENBCI_CHANNEL_CMD_CHANNEL_1;
-        uint8_t powerdown = (cmdBuffer[2] == OPENBCI_CHANNEL_CMD_POWER_OFF) ? ADS129x_REG_CHnSET_PD : 0;
-        uint8_t gain = 6;
+        uint8_t gain = 1;
         switch (cmdBuffer[3]) {
-          case OPENBCI_CHANNEL_CMD_GAIN_1: gain = ADS129x_REG_CHnSET_GAIN_1; break;
-          case OPENBCI_CHANNEL_CMD_GAIN_2: gain = ADS129x_REG_CHnSET_GAIN_2; break;
-          case OPENBCI_CHANNEL_CMD_GAIN_4: gain = ADS129x_REG_CHnSET_GAIN_4; break;
-          case OPENBCI_CHANNEL_CMD_GAIN_6: gain = ADS129x_REG_CHnSET_GAIN_6; break;
-          case OPENBCI_CHANNEL_CMD_GAIN_8: gain = ADS129x_REG_CHnSET_GAIN_8; break;
-          case OPENBCI_CHANNEL_CMD_GAIN_12: gain = ADS129x_REG_CHnSET_GAIN_12; break;
-          case OPENBCI_CHANNEL_CMD_GAIN_24: gain = ADS129x_REG_CHnSET_GAIN_12; break;
+          case OPENBCI_CHANNEL_CMD_GAIN_1: gain = 1; break;
+          case OPENBCI_CHANNEL_CMD_GAIN_2: gain = 2; break;
+          case OPENBCI_CHANNEL_CMD_GAIN_4: gain = 4; break;
+          case OPENBCI_CHANNEL_CMD_GAIN_6: gain = 6; break;
+          case OPENBCI_CHANNEL_CMD_GAIN_8: gain = 8; break;
+          case OPENBCI_CHANNEL_CMD_GAIN_12: gain = 12; break;
         }
-        uint8_t mux = 0;
+        ADS1X9X::INPUT_TYPE mux = ADS1X9X::INPUT_NORMAL;
         switch (cmdBuffer[4]) {
-          case OPENBCI_CHANNEL_CMD_ADC_Normal: mux = ADS1x9x_REG_CHnSET_MUX_ELECTRODE; break;
-          case OPENBCI_CHANNEL_CMD_ADC_Shorted: mux = ADS1x9x_REG_CHnSET_MUX_SHORTED; break;
-          case OPENBCI_CHANNEL_CMD_ADC_BiasMethod: mux = ADS1x9x_REG_CHnSET_MUX_RLD; break;
-          case OPENBCI_CHANNEL_CMD_ADC_MVDD: mux = ADS1x9x_REG_CHnSET_MUX_MVDD; break;
-          case OPENBCI_CHANNEL_CMD_ADC_Temp: mux = ADS1x9x_REG_CHnSET_MUX_TEMP; break;
-          case OPENBCI_CHANNEL_CMD_ADC_TestSig: mux = ADS1x9x_REG_CHnSET_MUX_TEST; break;
-          case OPENBCI_CHANNEL_CMD_ADC_BiasDRP: mux = ADS1x9x_REG_CHnSET_MUX_RLD_DRP; break;
-          case OPENBCI_CHANNEL_CMD_ADC_BiasDRN: mux = ADS1x9x_REG_CHnSET_MUX_RLD_DRN; break;
+          case OPENBCI_CHANNEL_CMD_ADC_Normal: mux = ADS1X9X::INPUT_NORMAL; break;
+          case OPENBCI_CHANNEL_CMD_ADC_Shorted: mux = ADS1X9X::INPUT_SHORTED; break;
+          case OPENBCI_CHANNEL_CMD_ADC_BiasMethod: mux = ADS1X9X::INPUT_RLD; break;
+          case OPENBCI_CHANNEL_CMD_ADC_MVDD: mux = ADS1X9X::INPUT_MVDD; break;
+          case OPENBCI_CHANNEL_CMD_ADC_Temp: mux = ADS1X9X::INPUT_TEMP; break;
+          case OPENBCI_CHANNEL_CMD_ADC_TestSig: mux = ADS1X9X::INPUT_TEST; break;
+          case OPENBCI_CHANNEL_CMD_ADC_BiasDRP: mux = ADS1X9X::INPUT_RLD_DRP; break;
+          case OPENBCI_CHANNEL_CMD_ADC_BiasDRN: mux = ADS1X9X::INPUT_RLD_DRN; break;
         }
-        ads->WREG(ADS1x9x_REG_CH1SET + channel, powerdown | gain | mux);
+        ads->set_channel_settings(getChannelFromCommand(cmdBuffer[1]), 
+                                  cmdBuffer[2] == OPENBCI_CHANNEL_CMD_POWER_OFF, 
+                                  gain, 
+                                  mux,
+                                  cmdBuffer[5] == OPENBCI_CHANNEL_CMD_BIAS_INCLUDE,
+                                  cmdBuffer[6] == OPENBCI_CHANNEL_CMD_SRB2_CONNECT,
+                                  cmdBuffer[7] == OPENBCI_CHANNEL_CMD_SRB1_CONNECT);
       }
       break;
-
     case OPENBCI_SAMPLE_RATE_SET:
-      switch (cmdBuffer[1]) {
-        case '0':
-          ads->WREG(ADS1x9x_REG_CONFIG1, ads->regData[ADS1x9x_REG_CONFIG1] & ~ADS129x_REG_CONFIG1_RATE_MASK | ADS129x_REG_CONFIG1_16KSPS);
-          break;
-        case '1':
-          ads->WREG(ADS1x9x_REG_CONFIG1, ads->regData[ADS1x9x_REG_CONFIG1] & ~ADS129x_REG_CONFIG1_RATE_MASK | ADS129x_REG_CONFIG1_8KSPS);
-          break;
-        case '2':
-          ads->WREG(ADS1x9x_REG_CONFIG1, ads->regData[ADS1x9x_REG_CONFIG1] & ~ADS129x_REG_CONFIG1_RATE_MASK | ADS129x_REG_CONFIG1_4KSPS);
-          break;
-        case '3':
-          ads->WREG(ADS1x9x_REG_CONFIG1, ads->regData[ADS1x9x_REG_CONFIG1] & ~ADS129x_REG_CONFIG1_RATE_MASK | ADS129x_REG_CONFIG1_2KSPS);
-          break;
-        case '4':
-          ads->WREG(ADS1x9x_REG_CONFIG1, ads->regData[ADS1x9x_REG_CONFIG1] & ~ADS129x_REG_CONFIG1_RATE_MASK | ADS129x_REG_CONFIG1_1KSPS);
-          break;
-        case '5':
-          ads->WREG(ADS1x9x_REG_CONFIG1, ads->regData[ADS1x9x_REG_CONFIG1] & ~ADS129x_REG_CONFIG1_RATE_MASK | ADS129x_REG_CONFIG1_500SPS);
-          break;
-        case '6':
-          ads->WREG(ADS1x9x_REG_CONFIG1, ads->regData[ADS1x9x_REG_CONFIG1] & ~ADS129x_REG_CONFIG1_RATE_MASK | ADS129x_REG_CONFIG1_500SPS);
-          break;
+    {
+        ADS1X9X::SAMPLE_RATE sr = ADS1X9X::SAMPLE_RATE_125;
+        switch (cmdBuffer[4]) {
+          case '0': sr = ADS1X9X::SAMPLE_RATE_16000; break;
+          case '1': sr = ADS1X9X::SAMPLE_RATE_8000; break;
+          case '2': sr = ADS1X9X::SAMPLE_RATE_4000; break;
+          case '3': sr = ADS1X9X::SAMPLE_RATE_2000; break;
+          case '4': sr = ADS1X9X::SAMPLE_RATE_1000; break;
+          case '5': sr = ADS1X9X::SAMPLE_RATE_500; break;
+          case '6': sr = ADS1X9X::SAMPLE_RATE_250; break;
+          case '7': sr = ADS1X9X::SAMPLE_RATE_125; break;
+          case '~': return; // FIXME
+        }
+        this->downsampling_factor = ads->set_sample_rate(sr);
       }
+      break;
   }
 }
-void OpenBCI::printHex(byte _data){
+void OpenBCI::printHex(byte _data) {
   if (_data < 0x10)
     serial->print("0");
   char buf[4];
   serial->print(itoa(_data, buf, HEX));
+}
+uint8_t OpenBCI::getChannelFromCommand(char asciiChar) {
+  switch (asciiChar)
+  {
+  case OPENBCI_CHANNEL_CMD_CHANNEL_1:
+  case OPENBCI_CHANNEL_ON_1:
+  // case OPENBCI_CHANNEL_OFF_1:
+    return 0x00;
+  case OPENBCI_CHANNEL_CMD_CHANNEL_2:
+  case OPENBCI_CHANNEL_ON_2:
+  // case OPENBCI_CHANNEL_OFF_2:
+    return 0x01;
+  case OPENBCI_CHANNEL_CMD_CHANNEL_3:
+  case OPENBCI_CHANNEL_ON_3:
+  // case OPENBCI_CHANNEL_OFF_3:
+    return 0x02;
+  case OPENBCI_CHANNEL_CMD_CHANNEL_4:
+  case OPENBCI_CHANNEL_ON_4:
+  // case OPENBCI_CHANNEL_OFF_4:
+    return 0x03;
+  case OPENBCI_CHANNEL_CMD_CHANNEL_5:
+  case OPENBCI_CHANNEL_ON_5:
+  // case OPENBCI_CHANNEL_OFF_5:
+    return 0x04;
+  case OPENBCI_CHANNEL_CMD_CHANNEL_6:
+  case OPENBCI_CHANNEL_ON_6:
+  // case OPENBCI_CHANNEL_OFF_6:
+    return 0x05;
+  case OPENBCI_CHANNEL_CMD_CHANNEL_7:
+  case OPENBCI_CHANNEL_ON_7:
+  // case OPENBCI_CHANNEL_OFF_7:
+    return 0x06;
+  case OPENBCI_CHANNEL_CMD_CHANNEL_8:
+  case OPENBCI_CHANNEL_ON_8:
+  // case OPENBCI_CHANNEL_OFF_8:
+    return 0x07;
+  case OPENBCI_CHANNEL_CMD_CHANNEL_9:
+  //case OPENBCI_CHANNEL_ON_9:
+  case OPENBCI_CHANNEL_OFF_9:
+    return 0x08;
+  case OPENBCI_CHANNEL_CMD_CHANNEL_10:
+  // case OPENBCI_CHANNEL_ON_10:
+  case OPENBCI_CHANNEL_OFF_10:
+    return 0x09;
+  case OPENBCI_CHANNEL_CMD_CHANNEL_11:
+  // case OPENBCI_CHANNEL_ON_11:
+  case OPENBCI_CHANNEL_OFF_11:
+    return 0x0A;
+  case OPENBCI_CHANNEL_CMD_CHANNEL_12:
+  // case OPENBCI_CHANNEL_ON_12:
+  case OPENBCI_CHANNEL_OFF_12:
+    return 0x0B;
+  case OPENBCI_CHANNEL_CMD_CHANNEL_13:
+  // case OPENBCI_CHANNEL_ON_13:
+  case OPENBCI_CHANNEL_OFF_13:
+    return 0x0C;
+  case OPENBCI_CHANNEL_CMD_CHANNEL_14:
+  // case OPENBCI_CHANNEL_ON_14:
+  case OPENBCI_CHANNEL_OFF_14:
+    return 0x0D;
+  case OPENBCI_CHANNEL_CMD_CHANNEL_15:
+  // case OPENBCI_CHANNEL_ON_15:
+  case OPENBCI_CHANNEL_OFF_15:
+    return 0x0E;
+  case OPENBCI_CHANNEL_CMD_CHANNEL_16:
+  // case OPENBCI_CHANNEL_ON_16:
+  case OPENBCI_CHANNEL_OFF_16:
+    return 0x0F;
+  default:
+    return 0x00;
+  }
 }

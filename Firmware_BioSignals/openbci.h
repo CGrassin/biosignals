@@ -7,7 +7,6 @@
 #define __OpenBCI_INCLUDE
 
 #include "ads1x9x.h"
-#include "ads129x.h" // TODO remove this dependancy, ADS1X9X shall be sufficient
 #include <Arduino.h>
 
 #define PCKT_START 0xA0  // prefix for data packet error checking
@@ -189,9 +188,10 @@ public:
   void readCMD();
 
 private:
-  void testSignals(uint8_t config2);
+  void testSignals(uint8_t config2, bool shorted);
   static bool isSingleCharCmd(char cmd);
   void processCMD();
   void printHex(byte _data);
+  uint8_t getChannelFromCommand(char asciiChar);
 };
 #endif

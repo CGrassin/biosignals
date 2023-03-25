@@ -1,3 +1,4 @@
+#include <sys/_stdint.h>
 /*
 * This class is the base class for all pin compatible ADS ICs.
 * It contains all common registers.
@@ -66,7 +67,14 @@
 #define ADS1x9x_REG_CHnSET_MUX_RLD_DRN 0b00000111
 #define ADS1x9x_REG_CHnSET_MUX_MASK 0b00000111
 #define ADS1x9x_REG_CHnSET_GAIN_MASK 0b01110000
-
+// CONFIG 1
+#define ADS1x9x_REG_CONFIG1_MULTI_READBACK 0b01000000 /* Multiple readback mode */
+#define ADS1x9x_REG_CONFIG1_CLK_EN 0b00100000         /* Oscillator clock output enabled */
+// CONFIG 2
+#define ADS1x9x_REG_CONFIG2_INT_TEST 0b00010000 /* Test signals are generated internally */
+#define ADS1x9x_REG_CONFIG2_TEST_AMP 0b00000100
+#define ADS1x9x_REG_CONFIG2_TEST_FREQ_FAST 0b00000001
+#define ADS1x9x_REG_CONFIG2_TEST_FREQ_DC 0b00000011
 
 /**
 Abstract interface to support all ADS ICs.
@@ -83,6 +91,28 @@ public:
   uint8_t regData[24];  // array is used to mirror register data
   uint8_t status[3]; // contains sampled last data
   uint8_t data[3 * 8]; // contains sampled last data
+
+  typedef enum INPUT_TYPE{
+    INPUT_NORMAL,
+    INPUT_SHORTED,
+    INPUT_RLD,
+    INPUT_MVDD,
+    INPUT_TEMP,
+    INPUT_TEST,
+    INPUT_RLD_DRP,
+    INPUT_RLD_DRN
+  };
+
+  typedef enum SAMPLE_RATE {
+    SAMPLE_RATE_16000,
+    SAMPLE_RATE_8000,
+    SAMPLE_RATE_4000,
+    SAMPLE_RATE_2000,
+    SAMPLE_RATE_1000,
+    SAMPLE_RATE_500,
+    SAMPLE_RATE_250,
+    SAMPLE_RATE_125
+  };
 
   ADS1X9X(int cs_pin_set, int drdy_pin_set, int reset_pin_set, SPIClass* spi_set);
   void init();
@@ -108,12 +138,12 @@ public:
   void switch_channel(uint8_t channelnumber, bool powerdown);
   bool isContReading();
   virtual void read_data();
-  
+
   // Abstract functions (IC-specific)
   virtual void all_defaults() = 0;
   virtual void channel_defaults() = 0;
-  //virtual void set_sample_rate() = 0; // TODO
-  //virtual void set_channel_settings() = 0; // TODO
+  virtual uint8_t set_sample_rate(SAMPLE_RATE sr) = 0; // Return the downsampling rate required to reach the desired SPS
+  virtual void set_channel_settings(uint8_t channelnumber, bool powerdown, uint8_t gain, INPUT_TYPE mux, bool bias, bool srb2, bool srb1) = 0; // TODO
 };
 
 #endif

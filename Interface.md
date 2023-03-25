@@ -290,6 +290,7 @@ This works similar to the Channel Settings commands, however, there is no latchi
 -   4 = 1000 Hz
 -   5 = 500 Hz
 -   6 = 250 Hz
+-   7 = 125 Hz
 -   ~ = Get current sample rate
 
 **EXAMPLE**
