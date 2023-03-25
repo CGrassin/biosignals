@@ -1,0 +1,5 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "C10418")(type "Legacy")(uri "${KIPRJMOD}/C10418.lib")(options "")(descr ""))
+  (lib (name "BioElectricalSensor-rescue")(type "KiCad")(uri "${KIPRJMOD}/BioElectricalSensor-rescue.kicad_sym")(options "")(descr ""))
+)
