@@ -6,6 +6,7 @@
 #ifndef __OpenBCI_INCLUDE
 #define __OpenBCI_INCLUDE
 
+#include "ads1x9x.h"
 #include "ads129x.h" // TODO remove this dependancy, ADS1X9X shall be sufficient
 #include <Arduino.h>
 
@@ -172,7 +173,7 @@
 
 class OpenBCI {
 private:
-  ADS129x* ads;
+  ADS1X9X* ads;
   HardwareSerial* serial;
   unsigned long multiCharCmdTimeout = 0;  // the timeout in millis of the current multi char command
   char cmdBuffer[OPENBCI_BUFFER_LENGTH];
@@ -182,7 +183,7 @@ private:
   uint8_t downsampling_factor; // Divides the data rate by this factor (e.g. 500 SPS and setting this to 2 = 250 messages per second)
 
 public:
-  OpenBCI(ADS129x* ads, HardwareSerial* serial);
+  OpenBCI(ADS1X9X* ads, HardwareSerial* serial);
   void startUpMessage();
   void sendData(uint8_t* value);
   void readCMD();
@@ -191,5 +192,6 @@ private:
   void testSignals(uint8_t config2);
   static bool isSingleCharCmd(char cmd);
   void processCMD();
+  void printHex(byte _data);
 };
 #endif

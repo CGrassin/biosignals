@@ -194,7 +194,7 @@ On failure:
     -   Too many characters or some other issue, `Failure: Err: too many chars$$$`
 -   If not all commands are not received within 1 second, `Timeout processing multi byte message - please send all commands at once as of v2$$$`
 
-<!-- ### Default Channel Settings
+### Default Channel Settings
 
 **d** To set all channels to default  
 
@@ -204,7 +204,7 @@ On failure:
 
 **returns** When you query the default settings, expect to get 6 ASCII characters followed by **$$$**
 
-_Note: Users can change the default channel settings in the initialization function inside the OpenBCI library. Requires re-programming the board._ -->
+_Note: Users can change the default channel settings in the initialization function inside the OpenBCI library. Requires re-programming the board._
 
 <!-- ### LeadOff Impedance Commands
 
@@ -304,11 +304,11 @@ Then, user sends **~5**
 
 NOTE: if not all commands are not received within 1 second, `Timeout processing multi byte message - please send all commands at once as of v2$$$`
 
-<!-- ### Get Version
+### Get Version
 
 **V** To get firmware version
 
-**returns** `v3.1.1$$$` -->
+**returns** `v3.1.1$$$`
 
 ## Unused ASCII Characters
 

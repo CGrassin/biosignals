@@ -22,6 +22,7 @@
 // REGISTER READ COMMANDS
 #define ADS1x9x_RREG 0x20 /* Read n nnnn registers starting at address r rrrr */
 #define ADS1x9x_WREG 0x40 /* Write n nnnn registers starting at address r rrrr */
+// ---------------------
 
 // Register map (only the common ones)
 // DEVICE SETTINGS (READ-ONLY REGISTERS)
@@ -50,9 +51,21 @@
 #define ADS1x9x_REG_LOFF_STATN 0x13
 // GPIO AND OTHER REGISTERS
 #define ADS1x9x_REG_GPIO 0x14
+#define ADS1x9x_REG_CONFIG4 0x17
 // ---------------------
+
 // CONFIG BIT MASKS
 #define ADS1x9x_REG_CHnSET_PD 0b10000000 /* Channel power-down */
+#define ADS1x9x_REG_CHnSET_MUX_ELECTRODE 0b00000000
+#define ADS1x9x_REG_CHnSET_MUX_SHORTED 0b00000001
+#define ADS1x9x_REG_CHnSET_MUX_RLD 0b00000010
+#define ADS1x9x_REG_CHnSET_MUX_MVDD 0b00000011
+#define ADS1x9x_REG_CHnSET_MUX_TEMP 0b00000100
+#define ADS1x9x_REG_CHnSET_MUX_TEST 0b00000101
+#define ADS1x9x_REG_CHnSET_MUX_RLD_DRP 0b00000110
+#define ADS1x9x_REG_CHnSET_MUX_RLD_DRN 0b00000111
+#define ADS1x9x_REG_CHnSET_MUX_MASK 0b00000111
+#define ADS1x9x_REG_CHnSET_GAIN_MASK 0b01110000
 
 
 /**
@@ -68,7 +81,8 @@ protected:
 
 public:
   uint8_t regData[24];  // array is used to mirror register data
-  uint8_t data[3 + 3 * 8]; // contains sampled last data
+  uint8_t status[3]; // contains sampled last data
+  uint8_t data[3 * 8]; // contains sampled last data
 
   ADS1X9X(int cs_pin_set, int drdy_pin_set, int reset_pin_set, SPIClass* spi_set);
   void init();
@@ -93,9 +107,9 @@ public:
   void soft_reset();
   void switch_channel(uint8_t channelnumber, bool powerdown);
   bool isContReading();
-
+  virtual void read_data();
+  
   // Abstract functions (IC-specific)
-  virtual void read_data() = 0;
   virtual void all_defaults() = 0;
   virtual void channel_defaults() = 0;
   //virtual void set_sample_rate() = 0; // TODO
