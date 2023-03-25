@@ -209,20 +209,33 @@ void OpenBCI::processCMD() {
       }
       break;
     case OPENBCI_SAMPLE_RATE_SET:
-    {
+      if(cmdBuffer[1] == OPENBCI_SAMPLE_RATE_SET){
+        if(!ads->isContReading()){
+          serial->print(OPENBCI_CMD_GET_SAMPLERATE_MSG_0);
+          serial->print(getSampleRate());
+          serial->print(OPENBCI_CMD_SET_SAMPLERATE_MSG_1);          
+        }
+      }
+      else{
         ADS1X9X::SAMPLE_RATE sr = ADS1X9X::SAMPLE_RATE_125;
-        switch (cmdBuffer[4]) {
+        switch (cmdBuffer[1]) {
           case '0': sr = ADS1X9X::SAMPLE_RATE_16000; break;
           case '1': sr = ADS1X9X::SAMPLE_RATE_8000; break;
           case '2': sr = ADS1X9X::SAMPLE_RATE_4000; break;
           case '3': sr = ADS1X9X::SAMPLE_RATE_2000; break;
           case '4': sr = ADS1X9X::SAMPLE_RATE_1000; break;
           case '5': sr = ADS1X9X::SAMPLE_RATE_500; break;
+          default:
           case '6': sr = ADS1X9X::SAMPLE_RATE_250; break;
           case '7': sr = ADS1X9X::SAMPLE_RATE_125; break;
-          case '~': return; // FIXME
         }
+        current_sample_rate = sr;
         this->downsampling_factor = ads->set_sample_rate(sr);
+        if(!ads->isContReading()){
+          serial->print(OPENBCI_CMD_SET_SAMPLERATE_MSG_0);
+          serial->print(getSampleRate());
+          serial->print(OPENBCI_CMD_SET_SAMPLERATE_MSG_1);
+        }
       }
       break;
     case OPENBCI_MISC_QUERY_REGISTER_SETTINGS:
@@ -322,5 +335,26 @@ uint8_t OpenBCI::getChannelFromCommand(char asciiChar) {
     return 0x0F;
   default:
     return 0x00;
+  }
+}
+const char * OpenBCI::getSampleRate() {
+  switch (current_sample_rate){
+  case ADS1X9X::SAMPLE_RATE_16000:
+    return "16000";
+  case ADS1X9X::SAMPLE_RATE_8000:
+    return "8000";
+  case ADS1X9X::SAMPLE_RATE_4000:
+    return "4000";
+  case ADS1X9X::SAMPLE_RATE_2000:
+    return "2000";
+  case ADS1X9X::SAMPLE_RATE_1000:
+    return "1000";
+  case ADS1X9X::SAMPLE_RATE_500:
+    return "500";
+  case ADS1X9X::SAMPLE_RATE_250:
+  default:
+    return "250";
+  case ADS1X9X::SAMPLE_RATE_125:
+    return "125";
   }
 }
