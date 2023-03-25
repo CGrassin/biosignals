@@ -206,7 +206,7 @@ On failure:
 
 _Note: Users can change the default channel settings in the initialization function inside the OpenBCI library. Requires re-programming the board._
 
-<!-- ### LeadOff Impedance Commands
+### LeadOff Impedance Commands
 
 **z (CHANNEL, PCHAN, NCHAN) Z**  
 This works similar to the Channel Settings commands. For firmware `v0` and `v1` care must be taken to delay between sending characters, as of `v2.0.0`, you may send as fast as possible in a byte stream. Impedance settings have two parameters for each ADS channel. Impedance is measurable by applying a small 31.5Hz AC signal to the given channel.
@@ -235,7 +235,7 @@ On failure:
     -   Too many characters or some other issue, `Failure: Err: too many chars$$$`
 -   If not all commands are not received within 1 second, `Timeout processing multi byte message - please send all commands at once as of v2$$$`
 
-### SD card Commands
+<!-- ### SD card Commands
 
 **A S F G H J K L**  
 Send to initiate SD card data logging for specified time  

@@ -92,7 +92,7 @@ void OpenBCI::processCMD() {
       break;
     case OPENBCI_GET_VERSION:
       serial->print(OPENBCI_FIRMWARE_VERSION);
-      serial->println("$$$");
+      serial->println(OPENBCI_EOT);
       serial->flush();
       break;
 
@@ -106,6 +106,7 @@ void OpenBCI::processCMD() {
         serial->print(OPENBCI_CMD_CHANNEL_DEFAULTS_MSG);
       break;    
 
+    // Channel On/Off
     case OPENBCI_CHANNEL_OFF_1:
     case OPENBCI_CHANNEL_OFF_2:
     case OPENBCI_CHANNEL_OFF_3:
@@ -116,7 +117,6 @@ void OpenBCI::processCMD() {
     case OPENBCI_CHANNEL_OFF_8:
       ads->switch_channel(getChannelFromCommand(cmdBuffer[0]), false);
       break;
-
     case OPENBCI_CHANNEL_ON_1:
     case OPENBCI_CHANNEL_ON_2:
     case OPENBCI_CHANNEL_ON_3:
@@ -128,6 +128,7 @@ void OpenBCI::processCMD() {
       ads->switch_channel(getChannelFromCommand(cmdBuffer[0]), true);
       break;
 
+    // Stream status
     case OPENBCI_STREAM_START:
       ads->start_stream();
       break;
@@ -135,6 +136,7 @@ void OpenBCI::processCMD() {
       ads->stop_stream();
       break;
 
+    // Test signals
     case OPENBCI_TEST_SIGNAL_CONNECT_TO_DC:
       testSignals(ADS1x9x_REG_CONFIG2_TEST_FREQ_DC, false);
       break;
@@ -153,6 +155,20 @@ void OpenBCI::processCMD() {
     case OPENBCI_TEST_SIGNAL_CONNECT_TO_PULSE_2X_SLOW:
       testSignals(ADS1x9x_REG_CONFIG2_TEST_AMP, false);
       break;
+
+    case OPENBCI_CHANNEL_IMPEDANCE_SET:
+    {
+      uint8_t channel = getChannelFromCommand(cmdBuffer[1]);
+      ads->WREG(ADS1x9x_REG_LOFF_SENSP, (cmdBuffer[2] == OPENBCI_CHANNEL_IMPEDANCE_TEST_SIGNAL_APPLIED) << channel);
+      ads->WREG(ADS1x9x_REG_LOFF_SENSN, (cmdBuffer[3] == OPENBCI_CHANNEL_IMPEDANCE_TEST_SIGNAL_APPLIED) << channel);
+
+      if (!ads->isContReading()) {
+        serial->print(OPENBCI_CMD_LOFF_SUCCESS_MSG);
+        serial->print(channel+1);
+        serial->println(OPENBCI_EOT);
+      }
+    }
+    break;
 
     case OPENBCI_CHANNEL_CMD_SET: 
       {

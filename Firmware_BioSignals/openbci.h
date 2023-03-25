@@ -162,6 +162,7 @@
 #define OPENBCI_PACKAGE_STOP_BYTE 0xC2
 
 // Messages
+#define OPENBCI_EOT "$$$"
 #define OPENBCI_FIRMWARE_VERSION "v3.0.0"
 #define OPENBCI_CMD_TIMEOUT_MSG "Timeout processing multi byte message - please send all commands at once as of v2$$$"
 #define OPENBCI_CMD_SET_SAMPLERATE_MSG_0 "Sample rate set to "
@@ -169,6 +170,7 @@
 #define OPENBCI_CMD_TESTSIGNAL_SUCCESS_MSG "Success: Configured internal test signal.$$$"
 #define OPENBCI_CMD_CHANNEL_DEFAULTS_UPDATE_MSG "updating channel settings to default$$$"
 #define OPENBCI_CMD_CHANNEL_DEFAULTS_MSG "050000$$$"
+#define OPENBCI_CMD_LOFF_SUCCESS_MSG "Success: Lead off set for "
 
 class OpenBCI {
 private:
