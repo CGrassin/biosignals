@@ -10,7 +10,7 @@
 #include <Arduino.h>
 
 #define PCKT_START 0xA0  // prefix for data packet error checking
-#define MULTI_CHAR_COMMAND_TIMEOUT_MS 50
+#define MULTI_CHAR_COMMAND_TIMEOUT_MS 1000
 
 // OPENBCI_COMMANDS
 /** Turning channels off */
@@ -161,18 +161,29 @@
 #define OPENBCI_BUFFER_LENGTH 10
 #define OPENBCI_PACKAGE_STOP_BYTE 0xC2
 
+// Messages
+#define OPENBCI_FIRMWARE_VERSION "v3.0.0"
+#define OPENBCI_CMD_TIMEOUT_MSG "Timeout processing multi byte message - please send all commands at once as of v2$$$"
+#define OPENBCI_CMD_SET_SAMPLERATE_MSG_0 "Sample rate set to "
+#define OPENBCI_CMD_SET_SAMPLERATE_MSG_1 "Hz$$$"
+#define OPENBCI_CMD_TESTSIGNAL_SUCCESS_MSG "Success: Configured internal test signal.$$$"
+#define OPENBCI_CMD_CHANNEL_DEFAULTS_UPDATE_MSG "updating channel settings to default$$$"
+#define OPENBCI_CMD_CHANNEL_DEFAULTS_MSG "050000$$$"
+
 class OpenBCI {
 private:
   ADS129x* ads;
   HardwareSerial* serial;
   unsigned long multiCharCmdTimeout = 0;  // the timeout in millis of the current multi char command
   char cmdBuffer[OPENBCI_BUFFER_LENGTH];
-  byte cmdIdx = 0;
-  uint8_t sample_number = 0;
+  byte cmdIdx = 0; // Current index in the command buffer
+  uint8_t package_counter = 0; // Package counter
+  uint8_t sample_counter = 0; // Sample counter
+  uint8_t downsampling_factor; // Divides the data rate by this factor (e.g. 500 SPS and setting this to 2 = 250 messages per second)
 
 public:
   OpenBCI(ADS129x* ads, HardwareSerial* serial);
-  void printVersion();
+  void startUpMessage();
   void sendData(uint8_t* value);
   void readCMD();
 

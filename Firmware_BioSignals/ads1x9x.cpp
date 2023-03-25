@@ -18,9 +18,9 @@ void ADS1X9X::init() {
   spi->setClockDivider(SPI_CLOCK_DIV4);
   spi->setDataMode(SPI_MODE1);
   // RESET THE CHIP
-  reset_hard();
+  hard_reset();
   stop_stream();
-  defaults();
+  all_defaults();
 }
 // System commands
 void ADS1X9X::SDATAC() {
@@ -85,8 +85,8 @@ void ADS1X9X::WREG(uint8_t _address, uint8_t _value) {  //  Write ONE register a
 }
 
 void ADS1X9X::WREGS(uint8_t _address, uint8_t _numRegisters) {
-  bool wasReading = isContReading;
-  if (isContReading)
+  bool wasReading = contReading;
+  if (contReading)
     stop_stream();
 
   byte opcode1 = _address + ADS1x9x_WREG;  //  WREG expects 010rrrrr where rrrrr = _address
@@ -104,23 +104,30 @@ void ADS1X9X::WREGS(uint8_t _address, uint8_t _numRegisters) {
 void ADS1X9X::start_stream() {
   START();
   RDATAC();
-  isContReading = true;
+  contReading = true;
 }
 void ADS1X9X::stop_stream() {
   STOP();
   SDATAC();
-  isContReading = false;
+  contReading = false;
 }
-void ADS1X9X::reset_hard(){
+void ADS1X9X::hard_reset(){
   digitalWrite(reset_pin, LOW);  // reset pin connected to both ADS ICs
   delayMicroseconds(4);        // toggle reset pin
   digitalWrite(reset_pin, HIGH); // this will reset the Daisy if it is present
   delayMicroseconds(20);       // recommended to wait 18 Tclk before using device (~8uS);
-  isContReading = true;
+  all_defaults();
+}
+void ADS1X9X::soft_reset(){
+  RESET();
+  all_defaults();
 }
 void ADS1X9X::switch_channel(uint8_t channelnumber, bool powerdown) {
   if (powerdown)
     WREG(ADS1x9x_REG_CH1SET + channelnumber, regData[ADS1x9x_REG_CH1SET + channelnumber] & ~ADS1x9x_REG_CHnSET_PD);
   else
     WREG(ADS1x9x_REG_CH1SET + channelnumber, regData[ADS1x9x_REG_CH1SET + channelnumber] | ADS1x9x_REG_CHnSET_PD);
+}
+bool ADS1X9X::isContReading() {
+  return contReading;
 }

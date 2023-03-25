@@ -89,8 +89,8 @@ class ADS129x: public ADS1X9X{
 public:
   ADS129x(int cs_pin_set, int drdy_pin_set, int reset_pin_set, SPIClass* spi_set);
 
-  void defaults();
+  void all_defaults();
+  void channel_defaults();
   void read_data();
-  void set_sample();
 };
 #endif

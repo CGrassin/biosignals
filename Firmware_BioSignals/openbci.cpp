@@ -5,17 +5,18 @@ OpenBCI::OpenBCI(ADS129x* ads, HardwareSerial* serial) {
   this->ads = ads;
   this->serial = serial;
 }
-void OpenBCI::printVersion(){
+void OpenBCI::startUpMessage(){
   serial->println("OpenBCI V3 8-16 channel");
   serial->println("ADS1298 Device ID: 0x00");
   serial->println("LIS3DH Device ID: 0x00");
-  serial->println("Firmware: v3.0.0");
+  serial->print("Firmware: ");
+  serial->println(OPENBCI_FIRMWARE_VERSION);
   serial->println("$$$");
   serial->flush();
 }
 void OpenBCI::sendData(uint8_t* value) {
   serial->write((char)PCKT_START);
-  serial->write(sample_number);
+  serial->write(package_counter);
   for (int i = 3; i < 3 + 8 * 3; i++)
     serial->write(value[i]);
   serial->write((char)0);
@@ -26,7 +27,7 @@ void OpenBCI::sendData(uint8_t* value) {
   serial->write((char)0);
   serial->write((char)OPENBCI_PACKAGE_STOP_BYTE);
   //serial->flush();
-  sample_number++;
+  package_counter++;
 }
 
 void OpenBCI::readCMD() {
@@ -35,20 +36,14 @@ void OpenBCI::readCMD() {
     cmdIdx++;
 
     if (cmdIdx >= OPENBCI_BUFFER_LENGTH) {  // Should never happen
-      //processCMD();
       cmdIdx = 0;
     }
 
-    if (cmdIdx == 1 && isSingleCharCmd(cmdBuffer[0])) {
-      processCMD();
-      cmdIdx = 0;
-    } else if (cmdIdx == 2 && cmdBuffer[0] == OPENBCI_SAMPLE_RATE_SET) {
-      processCMD();
-      cmdIdx = 0;
-    } else if (cmdIdx == 9 && cmdBuffer[0] == OPENBCI_CHANNEL_CMD_SET) {
-      processCMD();
-      cmdIdx = 0;
-    } else if (cmdIdx == 5 && cmdBuffer[0] == OPENBCI_CHANNEL_IMPEDANCE_SET) {
+    if ((cmdIdx == 1 && isSingleCharCmd(cmdBuffer[0])) ||
+        (cmdIdx == 2 && (cmdBuffer[0] == OPENBCI_SAMPLE_RATE_SET || cmdBuffer[0] == OPENBCI_BOARD_MODE_SET)) || 
+        (cmdIdx == 9 && cmdBuffer[0] == OPENBCI_CHANNEL_CMD_SET) || 
+        (cmdIdx == 5 && cmdBuffer[0] == OPENBCI_CHANNEL_IMPEDANCE_SET))
+    {
       processCMD();
       cmdIdx = 0;
     }
@@ -56,13 +51,21 @@ void OpenBCI::readCMD() {
     multiCharCmdTimeout = millis() + MULTI_CHAR_COMMAND_TIMEOUT_MS;
   }
   if (cmdIdx != 0 && millis() > multiCharCmdTimeout) {  // Should ever happen, drop cmd
-    //processCMD();
+    serial->print(OPENBCI_CMD_TIMEOUT_MSG);
     cmdIdx = 0;
   }
 }
 
 bool OpenBCI::isSingleCharCmd(char cmd) {
-  return cmd == OPENBCI_CHANNEL_OFF_1 || cmd == OPENBCI_CHANNEL_OFF_2 || cmd == OPENBCI_CHANNEL_OFF_3 || cmd == OPENBCI_CHANNEL_OFF_4 || cmd == OPENBCI_CHANNEL_OFF_5 || cmd == OPENBCI_CHANNEL_OFF_6 || cmd == OPENBCI_CHANNEL_OFF_7 || cmd == OPENBCI_CHANNEL_OFF_8 || cmd == OPENBCI_CHANNEL_OFF_9 || cmd == OPENBCI_CHANNEL_OFF_10 || cmd == OPENBCI_CHANNEL_OFF_11 || cmd == OPENBCI_CHANNEL_OFF_12 || cmd == OPENBCI_CHANNEL_OFF_13 || cmd == OPENBCI_CHANNEL_OFF_14 || cmd == OPENBCI_CHANNEL_OFF_15 || cmd == OPENBCI_CHANNEL_OFF_16 || cmd == OPENBCI_CHANNEL_ON_1 || cmd == OPENBCI_CHANNEL_ON_2 || cmd == OPENBCI_CHANNEL_ON_3 || cmd == OPENBCI_CHANNEL_ON_4 || cmd == OPENBCI_CHANNEL_ON_5 || cmd == OPENBCI_CHANNEL_ON_6 || cmd == OPENBCI_CHANNEL_ON_7 || cmd == OPENBCI_CHANNEL_ON_8 || cmd == OPENBCI_CHANNEL_ON_9 || cmd == OPENBCI_CHANNEL_ON_10 || cmd == OPENBCI_CHANNEL_ON_11 || cmd == OPENBCI_CHANNEL_ON_12 || cmd == OPENBCI_CHANNEL_ON_13 || cmd == OPENBCI_CHANNEL_ON_14 || cmd == OPENBCI_CHANNEL_ON_15 || cmd == OPENBCI_CHANNEL_ON_16 || cmd == OPENBCI_TEST_SIGNAL_CONNECT_TO_DC || cmd == OPENBCI_TEST_SIGNAL_CONNECT_TO_GROUND || cmd == OPENBCI_TEST_SIGNAL_CONNECT_TO_PULSE_1X_FAST || cmd == OPENBCI_TEST_SIGNAL_CONNECT_TO_PULSE_1X_SLOW || cmd == OPENBCI_TEST_SIGNAL_CONNECT_TO_PULSE_2X_FAST || cmd == OPENBCI_TEST_SIGNAL_CONNECT_TO_PULSE_2X_SLOW || cmd == OPENBCI_SD_LOG_FOR_HOUR_1 || cmd == OPENBCI_SD_LOG_FOR_HOUR_2 || cmd == OPENBCI_SD_LOG_FOR_HOUR_4 || cmd == OPENBCI_SD_LOG_FOR_HOUR_12 || cmd == OPENBCI_SD_LOG_FOR_HOUR_24 || cmd == OPENBCI_SD_LOG_FOR_MIN_5 || cmd == OPENBCI_SD_LOG_FOR_MIN_15 || cmd == OPENBCI_SD_LOG_FOR_MIN_30 || cmd == OPENBCI_SD_LOG_FOR_SEC_14 || cmd == OPENBCI_SD_LOG_STOP || cmd == OPENBCI_STREAM_START || cmd == OPENBCI_STREAM_STOP || cmd == OPENBCI_MISC_QUERY_REGISTER_SETTINGS || cmd == OPENBCI_MISC_SOFT_RESET || cmd == OPENBCI_CHANNEL_MAX_NUMBER_8 || cmd == OPENBCI_CHANNEL_MAX_NUMBER_16 || cmd == OPENBCI_BOARD_MODE_SET || cmd == OPENBCI_GET_VERSION;
+  return cmd == OPENBCI_CHANNEL_OFF_1 || cmd == OPENBCI_CHANNEL_OFF_2 || cmd == OPENBCI_CHANNEL_OFF_3 || cmd == OPENBCI_CHANNEL_OFF_4 || cmd == OPENBCI_CHANNEL_OFF_5 || cmd == OPENBCI_CHANNEL_OFF_6 || cmd == OPENBCI_CHANNEL_OFF_7 || cmd == OPENBCI_CHANNEL_OFF_8 ||
+   cmd == OPENBCI_CHANNEL_OFF_9 || cmd == OPENBCI_CHANNEL_OFF_10 || cmd == OPENBCI_CHANNEL_OFF_11 || cmd == OPENBCI_CHANNEL_OFF_12 || cmd == OPENBCI_CHANNEL_OFF_13 || cmd == OPENBCI_CHANNEL_OFF_14 || cmd == OPENBCI_CHANNEL_OFF_15 || cmd == OPENBCI_CHANNEL_OFF_16 || 
+   cmd == OPENBCI_CHANNEL_ON_1 || cmd == OPENBCI_CHANNEL_ON_2 || cmd == OPENBCI_CHANNEL_ON_3 || cmd == OPENBCI_CHANNEL_ON_4 || cmd == OPENBCI_CHANNEL_ON_5 || cmd == OPENBCI_CHANNEL_ON_6 || cmd == OPENBCI_CHANNEL_ON_7 || cmd == OPENBCI_CHANNEL_ON_8 ||
+   cmd == OPENBCI_CHANNEL_ON_9 || cmd == OPENBCI_CHANNEL_ON_10 || cmd == OPENBCI_CHANNEL_ON_11 || cmd == OPENBCI_CHANNEL_ON_12 || cmd == OPENBCI_CHANNEL_ON_13 || cmd == OPENBCI_CHANNEL_ON_14 || cmd == OPENBCI_CHANNEL_ON_15 || cmd == OPENBCI_CHANNEL_ON_16 ||
+   cmd == OPENBCI_TEST_SIGNAL_CONNECT_TO_DC || cmd == OPENBCI_TEST_SIGNAL_CONNECT_TO_GROUND || cmd == OPENBCI_TEST_SIGNAL_CONNECT_TO_PULSE_1X_FAST || cmd == OPENBCI_TEST_SIGNAL_CONNECT_TO_PULSE_1X_SLOW || cmd == OPENBCI_TEST_SIGNAL_CONNECT_TO_PULSE_2X_FAST || cmd == OPENBCI_TEST_SIGNAL_CONNECT_TO_PULSE_2X_SLOW || 
+   cmd == OPENBCI_SD_LOG_FOR_HOUR_1 || cmd == OPENBCI_SD_LOG_FOR_HOUR_2 || cmd == OPENBCI_SD_LOG_FOR_HOUR_4 || cmd == OPENBCI_SD_LOG_FOR_HOUR_12 || cmd == OPENBCI_SD_LOG_FOR_HOUR_24 || cmd == OPENBCI_SD_LOG_FOR_MIN_5 || cmd == OPENBCI_SD_LOG_FOR_MIN_15 || cmd == OPENBCI_SD_LOG_FOR_MIN_30 ||  cmd == OPENBCI_SD_LOG_FOR_SEC_14 || cmd == OPENBCI_SD_LOG_STOP || 
+   cmd == OPENBCI_STREAM_START || cmd == OPENBCI_STREAM_STOP || cmd == OPENBCI_MISC_QUERY_REGISTER_SETTINGS || cmd == OPENBCI_MISC_SOFT_RESET || 
+   cmd == OPENBCI_CHANNEL_MAX_NUMBER_8 || cmd == OPENBCI_CHANNEL_MAX_NUMBER_16 || cmd == OPENBCI_BOARD_MODE_SET || cmd == OPENBCI_GET_VERSION ||
+   cmd == OPENBCI_CHANNEL_DEFAULT_ALL_SET || cmd == OPENBCI_CHANNEL_DEFAULT_ALL_REPORT;
 }
 
 void OpenBCI::testSignals(uint8_t config2) {
@@ -72,15 +75,31 @@ void OpenBCI::testSignals(uint8_t config2) {
     ads->WREG(ADS129x_REG_CH1SET+i, ads->regData[ADS129x_REG_CH1SET+i] & ~ADS129x_REG_CHnSET_MUX_MASK | ADS129x_REG_CHnSET_MUX_TEST); // switch mux to test    
   }
   ads->WREG(ADS129x_REG_CONFIG2, ADS129x_REG_CONFIG2_INT_TEST | config2);
+  if(!ads->isContReading())
+    serial->print(OPENBCI_CMD_TESTSIGNAL_SUCCESS_MSG);
 }
 
 void OpenBCI::processCMD() {
   switch (cmdBuffer[0]) {
     case OPENBCI_MISC_SOFT_RESET:
-      ads->RESET();
-      ads->defaults();
-      printVersion();
+      ads->soft_reset();
+      startUpMessage();
       break;
+    case OPENBCI_GET_VERSION:
+      serial->print(OPENBCI_FIRMWARE_VERSION);
+      serial->println("$$$");
+      serial->flush();
+      break;
+
+    case OPENBCI_CHANNEL_DEFAULT_ALL_SET:
+      ads->channel_defaults();
+      if(!ads->isContReading())
+        serial->print(OPENBCI_CMD_CHANNEL_DEFAULTS_UPDATE_MSG);
+      break;
+    case OPENBCI_CHANNEL_DEFAULT_ALL_REPORT:
+      if(!ads->isContReading())
+        serial->print(OPENBCI_CMD_CHANNEL_DEFAULTS_MSG);
+      break;    
 
     case OPENBCI_CHANNEL_OFF_1:
       ads->switch_channel(0, false);

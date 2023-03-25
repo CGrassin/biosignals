@@ -75,7 +75,7 @@ void setup() {
     else
        USB_SERIAL.println("Failed open SD");
   #endif
-  openbci.printVersion();
+  openbci.startUpMessage();
 }
 
 void loop() {

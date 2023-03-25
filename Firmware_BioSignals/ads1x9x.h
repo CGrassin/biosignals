@@ -53,6 +53,8 @@
 // ---------------------
 // CONFIG BIT MASKS
 #define ADS1x9x_REG_CHnSET_PD 0b10000000 /* Channel power-down */
+
+
 /**
 Abstract interface to support all ADS ICs.
 */
@@ -62,7 +64,7 @@ protected:
   int drdy_pin;
   int reset_pin;
   SPIClass* spi;
-  bool isContReading = false;
+  bool contReading = false;
 
 public:
   uint8_t regData[24];  // array is used to mirror register data
@@ -87,11 +89,17 @@ public:
   // Interface
   void start_stream();
   void stop_stream();
-  void reset_hard();
+  void hard_reset();
+  void soft_reset();
   void switch_channel(uint8_t channelnumber, bool powerdown);
+  bool isContReading();
 
+  // Abstract functions (IC-specific)
   virtual void read_data() = 0;
-  virtual void defaults() = 0;
+  virtual void all_defaults() = 0;
+  virtual void channel_defaults() = 0;
+  //virtual void set_sample_rate() = 0; // TODO
+  //virtual void set_channel_settings() = 0; // TODO
 };
 
 #endif
