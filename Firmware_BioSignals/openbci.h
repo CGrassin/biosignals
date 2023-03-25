@@ -181,7 +181,8 @@ private:
   byte cmdIdx = 0; // Current index in the command buffer
   uint8_t package_counter = 0; // Package counter
   uint8_t sample_counter = 0; // Sample counter
-  uint8_t downsampling_factor; // Divides the data rate by this factor (e.g. 500 SPS and setting this to 2 = 250 messages per second)
+  uint8_t downsampling_factor = 2; // Divides the data rate by this factor (e.g. 500 SPS and setting this to 2 = 250 messages per second)
+  ADS1X9X::SAMPLE_RATE current_sample_rate = ADS1X9X::SAMPLE_RATE_250;
 
 public:
   OpenBCI(ADS1X9X* ads, HardwareSerial* serial);

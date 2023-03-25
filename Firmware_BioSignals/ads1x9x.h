@@ -3,102 +3,103 @@
 * This class is the base class for all pin compatible ADS ICs.
 * It contains all common registers.
 */
-#ifndef __ADS1x9X_INCLUDE
-#define __ADS1x9X_INCLUDE
+#ifndef __ADS1X9X_INCLUDE
+#define __ADS1X9X_INCLUDE
 
 #include <Arduino.h>
 #include <SPI.h>
 
 // Opcode Command Definitions
 // SYSTEM COMMANDS
-#define ADS1x9x_WAKEUP 0x02  /* Wakeup from standby mode */
-#define ADS1x9x_STANDBY 0x04 /* Enter standby mode */
-#define ADS1x9x_RESET 0x06   /* Reset the device */
-#define ADS1x9x_START 0x08   /* Start/restart (synchronize) conversions */
-#define ADS1x9x_STOP 0x0A    /* Stop conversion */
+#define ADS1X9X_WAKEUP 0x02  /* Wakeup from standby mode */
+#define ADS1X9X_STANDBY 0x04 /* Enter standby mode */
+#define ADS1X9X_RESET 0x06   /* Reset the device */
+#define ADS1X9X_START 0x08   /* Start/restart (synchronize) conversions */
+#define ADS1X9X_STOP 0x0A    /* Stop conversion */
 // DATA READ COMMANDS
-#define ADS1x9x_RDATAC 0x10 /* Enable Read Data Continuous mode. */
-#define ADS1x9x_SDATAC 0x11 /* Stop Read Data Continuously mode */
-#define ADS1x9x_RDATA 0x12  /* Read data by command; supports multiple read back. */
+#define ADS1X9X_RDATAC 0x10 /* Enable Read Data Continuous mode. */
+#define ADS1X9X_SDATAC 0x11 /* Stop Read Data Continuously mode */
+#define ADS1X9X_RDATA 0x12  /* Read data by command; supports multiple read back. */
 // REGISTER READ COMMANDS
-#define ADS1x9x_RREG 0x20 /* Read n nnnn registers starting at address r rrrr */
-#define ADS1x9x_WREG 0x40 /* Write n nnnn registers starting at address r rrrr */
+#define ADS1X9X_RREG 0x20 /* Read n nnnn registers starting at address r rrrr */
+#define ADS1X9X_WREG 0x40 /* Write n nnnn registers starting at address r rrrr */
 // ---------------------
 
 // Register map (only the common ones)
 // DEVICE SETTINGS (READ-ONLY REGISTERS)
-#define ADS1x9x_REG_ID 0x00
+#define ADS1X9X_REG_ID 0x00
 // GLOBAL SETTINGS ACROSS CHANNELS
-#define ADS1x9x_REG_CONFIG1 0x01
-#define ADS1x9x_REG_CONFIG2 0x02
-#define ADS1x9x_REG_CONFIG3 0x03
-#define ADS1x9x_REG_LOFF 0x04
+#define ADS1X9X_REG_CONFIG1 0x01
+#define ADS1X9X_REG_CONFIG2 0x02
+#define ADS1X9X_REG_CONFIG3 0x03
+#define ADS1X9X_REG_LOFF 0x04
 // CHANNEL-SPECIFIC SETTINGS
-#define ADS1x9x_REG_CH1SET 0x05
-#define ADS1x9x_REG_CH2SET 0x06
-#define ADS1x9x_REG_CH3SET 0x07
-#define ADS1x9x_REG_CH4SET 0x08
-#define ADS1x9x_REG_CH5SET 0x09
-#define ADS1x9x_REG_CH6SET 0x0A
-#define ADS1x9x_REG_CH7SET 0x0B
-#define ADS1x9x_REG_CH8SET 0x0C
-#define ADS1x9x_REG_RLD_SENSP 0x0D
-#define ADS1x9x_REG_RLD_SENSN 0x0E
-#define ADS1x9x_REG_LOFF_SENSP 0x0F
-#define ADS1x9x_REG_LOFF_SENSN 0x10
-#define ADS1x9x_REG_LOFF_FLIP 0x11
+#define ADS1X9X_REG_CH1SET 0x05
+#define ADS1X9X_REG_CH2SET 0x06
+#define ADS1X9X_REG_CH3SET 0x07
+#define ADS1X9X_REG_CH4SET 0x08
+#define ADS1X9X_REG_CH5SET 0x09
+#define ADS1X9X_REG_CH6SET 0x0A
+#define ADS1X9X_REG_CH7SET 0x0B
+#define ADS1X9X_REG_CH8SET 0x0C
+#define ADS1X9X_REG_RLD_SENSP 0x0D
+#define ADS1X9X_REG_RLD_SENSN 0x0E
+#define ADS1X9X_REG_LOFF_SENSP 0x0F
+#define ADS1X9X_REG_LOFF_SENSN 0x10
+#define ADS1X9X_REG_LOFF_FLIP 0x11
 // LEAD-OFF STATUS REGISTERS (READ-ONLY REGISTERS)
-#define ADS1x9x_REG_LOFF_STATP 0x12
-#define ADS1x9x_REG_LOFF_STATN 0x13
+#define ADS1X9X_REG_LOFF_STATP 0x12
+#define ADS1X9X_REG_LOFF_STATN 0x13
 // GPIO AND OTHER REGISTERS
-#define ADS1x9x_REG_GPIO 0x14
-#define ADS1x9x_REG_CONFIG4 0x17
+#define ADS1X9X_REG_GPIO 0x14
+#define ADS1X9X_REG_CONFIG4 0x17
 // ---------------------
 
 // CONFIG BIT MASKS
-#define ADS1x9x_REG_CHnSET_PD 0b10000000 /* Channel power-down */
-#define ADS1x9x_REG_CHnSET_MUX_ELECTRODE 0b00000000
-#define ADS1x9x_REG_CHnSET_MUX_SHORTED 0b00000001
-#define ADS1x9x_REG_CHnSET_MUX_RLD 0b00000010
-#define ADS1x9x_REG_CHnSET_MUX_MVDD 0b00000011
-#define ADS1x9x_REG_CHnSET_MUX_TEMP 0b00000100
-#define ADS1x9x_REG_CHnSET_MUX_TEST 0b00000101
-#define ADS1x9x_REG_CHnSET_MUX_RLD_DRP 0b00000110
-#define ADS1x9x_REG_CHnSET_MUX_RLD_DRN 0b00000111
-#define ADS1x9x_REG_CHnSET_MUX_MASK 0b00000111
-#define ADS1x9x_REG_CHnSET_GAIN_MASK 0b01110000
+#define ADS1X9X_REG_CHnSET_PD 0b10000000 /* Channel power-down */
+#define ADS1X9X_REG_CHnSET_MUX_ELECTRODE 0b00000000
+#define ADS1X9X_REG_CHnSET_MUX_SHORTED 0b00000001
+#define ADS1X9X_REG_CHnSET_MUX_RLD 0b00000010
+#define ADS1X9X_REG_CHnSET_MUX_MVDD 0b00000011
+#define ADS1X9X_REG_CHnSET_MUX_TEMP 0b00000100
+#define ADS1X9X_REG_CHnSET_MUX_TEST 0b00000101
+#define ADS1X9X_REG_CHnSET_MUX_RLD_DRP 0b00000110
+#define ADS1X9X_REG_CHnSET_MUX_RLD_DRN 0b00000111
+#define ADS1X9X_REG_CHnSET_MUX_MASK 0b00000111
+#define ADS1X9X_REG_CHnSET_GAIN_MASK 0b01110000
 // CONFIG 1
-#define ADS1x9x_REG_CONFIG1_MULTI_READBACK 0b01000000 /* Multiple readback mode */
-#define ADS1x9x_REG_CONFIG1_CLK_EN 0b00100000         /* Oscillator clock output enabled */
+#define ADS1X9X_REG_CONFIG1_MULTI_READBACK 0b01000000 /* Multiple readback mode */
+#define ADS1X9X_REG_CONFIG1_CLK_EN 0b00100000         /* Oscillator clock output enabled */
+#define ADS1X9X_REG_CONFIG1_RATE_MASK 0b00000111
 // CONFIG 2
-#define ADS1x9x_REG_CONFIG2_INT_TEST 0b00010000 /* Test signals are generated internally */
-#define ADS1x9x_REG_CONFIG2_TEST_AMP 0b00000100
-#define ADS1x9x_REG_CONFIG2_TEST_FREQ_FAST 0b00000001
-#define ADS1x9x_REG_CONFIG2_TEST_FREQ_DC 0b00000011
+#define ADS1X9X_REG_CONFIG2_INT_TEST 0b00010000 /* Test signals are generated internally */
+#define ADS1X9X_REG_CONFIG2_TEST_AMP 0b00000100
+#define ADS1X9X_REG_CONFIG2_TEST_FREQ_FAST 0b00000001
+#define ADS1X9X_REG_CONFIG2_TEST_FREQ_DC 0b00000011
 // CONFIG 3
-#define ADS1x9x_REG_CONFIG3_PD_REFBUF      0b10000000 /* Enable internal reference buffer */
-#define ADS1x9x_REG_CONFIG3_BIAS_MEAS      0b00010000 /* BIAS_IN signal is routed to the channel that has the MUX_Setting 010 (VREF) */
-#define ADS1x9x_REG_CONFIG3_BIASREF_INT    0b00001000 /* BIASREF signal (AVDD + AVSS) / 2 generated internally */
-#define ADS1x9x_REG_CONFIG3_PD_BIAS        0b00000100 /* BIAS buffer power powered */
-#define ADS1x9x_REG_CONFIG3_BIAS_LOFF_SENS 0b00000010 /* BIAS sense function enabled. */
-#define ADS1x9x_REG_CONFIG3_BIAS_STAT      0b00000001 /* BIAS lead-off status connected. */
+#define ADS1X9X_REG_CONFIG3_PD_REFBUF      0b10000000 /* Enable internal reference buffer */
+#define ADS1X9X_REG_CONFIG3_BIAS_MEAS      0b00010000 /* BIAS_IN signal is routed to the channel that has the MUX_Setting 010 (VREF) */
+#define ADS1X9X_REG_CONFIG3_BIASREF_INT    0b00001000 /* BIASREF signal (AVDD + AVSS) / 2 generated internally */
+#define ADS1X9X_REG_CONFIG3_PD_BIAS        0b00000100 /* BIAS buffer power powered */
+#define ADS1X9X_REG_CONFIG3_BIAS_LOFF_SENS 0b00000010 /* BIAS sense function enabled. */
+#define ADS1X9X_REG_CONFIG3_BIAS_STAT      0b00000001 /* BIAS lead-off status connected. */
 // LOFF
-#define ADS1x9x_REG_LOFF_COMP_TH_95 0b00000000
-#define ADS1x9x_REG_LOFF_COMP_TH_92_5 0b00100000
-#define ADS1x9x_REG_LOFF_COMP_TH_90 0b01000000
-#define ADS1x9x_REG_LOFF_COMP_TH_87_5 0b01100000
-#define ADS1x9x_REG_LOFF_COMP_TH_85 0b10000000
-#define ADS1x9x_REG_LOFF_COMP_TH_80 0b10100000
-#define ADS1x9x_REG_LOFF_COMP_TH_75 0b11000000
-#define ADS1x9x_REG_LOFF_COMP_TH_70 0b11100000
-#define ADS1x9x_REG_ILEAD_OFF_6_nA  0b00000000
-#define ADS1x9x_REG_ILEAD_OFF_24_nA 0b00000100
-#define ADS1x9x_REG_ILEAD_OFF_6_uA  0b00001000
-#define ADS1x9x_REG_ILEAD_OFF_24_uA 0b00001100
-#define ADS1x9x_REG_FLEAD_OFF_DC 0b00000000
-#define ADS1x9x_REG_FLEAD_OFF_AC_7_8HZ 0b00000001
-#define ADS1x9x_REG_FLEAD_OFF_AC_31_2HZ 0b00000010
-#define ADS1x9x_REG_FLEAD_OFF_AC_FdrDIV4 0b00000011
+#define ADS1X9X_REG_LOFF_COMP_TH_95 0b00000000
+#define ADS1X9X_REG_LOFF_COMP_TH_92_5 0b00100000
+#define ADS1X9X_REG_LOFF_COMP_TH_90 0b01000000
+#define ADS1X9X_REG_LOFF_COMP_TH_87_5 0b01100000
+#define ADS1X9X_REG_LOFF_COMP_TH_85 0b10000000
+#define ADS1X9X_REG_LOFF_COMP_TH_80 0b10100000
+#define ADS1X9X_REG_LOFF_COMP_TH_75 0b11000000
+#define ADS1X9X_REG_LOFF_COMP_TH_70 0b11100000
+#define ADS1X9X_REG_ILEAD_OFF_6_nA  0b00000000
+#define ADS1X9X_REG_ILEAD_OFF_24_nA 0b00000100
+#define ADS1X9X_REG_ILEAD_OFF_6_uA  0b00001000
+#define ADS1X9X_REG_ILEAD_OFF_24_uA 0b00001100
+#define ADS1X9X_REG_FLEAD_OFF_DC 0b00000000
+#define ADS1X9X_REG_FLEAD_OFF_AC_7_8HZ 0b00000001
+#define ADS1X9X_REG_FLEAD_OFF_AC_31_2HZ 0b00000010
+#define ADS1X9X_REG_FLEAD_OFF_AC_FdrDIV4 0b00000011
 
 /**
 Abstract interface to support all ADS ICs.

@@ -8,7 +8,7 @@ OpenBCI::OpenBCI(ADS1X9X* ads, HardwareSerial* serial) {
 void OpenBCI::startUpMessage(){
   serial->println("OpenBCI V3 8-16 channel");
   serial->print("ADS1298 Device ID: 0x");
-  printHex(ads->RREG(ADS1x9x_REG_ID));
+  printHex(ads->RREG(ADS1X9X_REG_ID));
   serial->println();
   serial->println("LIS3DH Device ID: 0x00");
   serial->print("Firmware: ");
@@ -17,6 +17,9 @@ void OpenBCI::startUpMessage(){
   serial->flush();
 }
 void OpenBCI::sendData(uint8_t* value) {
+  sample_counter ++;
+  if(sample_counter % downsampling_factor)
+    return;
   serial->write((char)PCKT_START);
   serial->write(package_counter);
   for (int i = 0; i < 8 * 3; i++)
@@ -74,11 +77,11 @@ void OpenBCI::testSignals(uint8_t config2, bool shorted) {
   // Configure all channels
   for(int i = 0; i < 8; i++){
     if(shorted)
-      ads->WREG(ADS1x9x_REG_CH1SET+i, (ads->regData[ADS1x9x_REG_CH1SET+i] & ~ADS1x9x_REG_CHnSET_MUX_MASK) | ADS1x9x_REG_CHnSET_MUX_SHORTED | ADS1x9x_REG_CHnSET_PD); // switch mux to test    
+      ads->WREG(ADS1X9X_REG_CH1SET+i, (ads->regData[ADS1X9X_REG_CH1SET+i] & ~ADS1X9X_REG_CHnSET_MUX_MASK) | ADS1X9X_REG_CHnSET_MUX_SHORTED | ADS1X9X_REG_CHnSET_PD); // switch mux to test    
     else
-      ads->WREG(ADS1x9x_REG_CH1SET+i, (ads->regData[ADS1x9x_REG_CH1SET+i] & ~ADS1x9x_REG_CHnSET_MUX_MASK) | ADS1x9x_REG_CHnSET_MUX_TEST | ADS1x9x_REG_CHnSET_PD); // switch mux to test    
+      ads->WREG(ADS1X9X_REG_CH1SET+i, (ads->regData[ADS1X9X_REG_CH1SET+i] & ~ADS1X9X_REG_CHnSET_MUX_MASK) | ADS1X9X_REG_CHnSET_MUX_TEST | ADS1X9X_REG_CHnSET_PD); // switch mux to test    
   }
-  ads->WREG(ADS1x9x_REG_CONFIG2, ADS1x9x_REG_CONFIG2_INT_TEST | config2);
+  ads->WREG(ADS1X9X_REG_CONFIG2, ADS1X9X_REG_CONFIG2_INT_TEST | config2);
 
   if(!ads->isContReading())
     serial->print(OPENBCI_CMD_TESTSIGNAL_SUCCESS_MSG);
@@ -89,6 +92,7 @@ void OpenBCI::processCMD() {
     case OPENBCI_MISC_SOFT_RESET:
       ads->soft_reset();
       startUpMessage();
+      current_sample_rate = ADS1X9X::SAMPLE_RATE_250; downsampling_factor = 2;
       break;
     case OPENBCI_GET_VERSION:
       serial->print(OPENBCI_FIRMWARE_VERSION);
@@ -138,22 +142,22 @@ void OpenBCI::processCMD() {
 
     // Test signals
     case OPENBCI_TEST_SIGNAL_CONNECT_TO_DC:
-      testSignals(ADS1x9x_REG_CONFIG2_TEST_FREQ_DC, false);
+      testSignals(ADS1X9X_REG_CONFIG2_TEST_FREQ_DC, false);
       break;
     case OPENBCI_TEST_SIGNAL_CONNECT_TO_GROUND:
       testSignals(0,true);
       break;    
     case OPENBCI_TEST_SIGNAL_CONNECT_TO_PULSE_1X_FAST:
-      testSignals(ADS1x9x_REG_CONFIG2_TEST_FREQ_FAST, false);
+      testSignals(ADS1X9X_REG_CONFIG2_TEST_FREQ_FAST, false);
       break;
     case OPENBCI_TEST_SIGNAL_CONNECT_TO_PULSE_2X_FAST:
-      testSignals(ADS1x9x_REG_CONFIG2_TEST_AMP | ADS1x9x_REG_CONFIG2_TEST_FREQ_FAST, false);
+      testSignals(ADS1X9X_REG_CONFIG2_TEST_AMP | ADS1X9X_REG_CONFIG2_TEST_FREQ_FAST, false);
       break;
     case OPENBCI_TEST_SIGNAL_CONNECT_TO_PULSE_1X_SLOW:
       testSignals(0, false);
       break;
     case OPENBCI_TEST_SIGNAL_CONNECT_TO_PULSE_2X_SLOW:
-      testSignals(ADS1x9x_REG_CONFIG2_TEST_AMP, false);
+      testSignals(ADS1X9X_REG_CONFIG2_TEST_AMP, false);
       break;
 
     case OPENBCI_CHANNEL_IMPEDANCE_SET:
@@ -162,8 +166,8 @@ void OpenBCI::processCMD() {
       uint8_t sensP = (cmdBuffer[2] == OPENBCI_CHANNEL_IMPEDANCE_TEST_SIGNAL_APPLIED) << channel;
       uint8_t sensN = (cmdBuffer[3] == OPENBCI_CHANNEL_IMPEDANCE_TEST_SIGNAL_APPLIED) << channel;
 
-      ads->WREG(ADS1x9x_REG_LOFF_SENSP, ads->regData[ADS1x9x_REG_LOFF_SENSP] & ~sensP | sensP);
-      ads->WREG(ADS1x9x_REG_LOFF_SENSN, ads->regData[ADS1x9x_REG_LOFF_SENSP] & ~sensN | sensN);
+      ads->WREG(ADS1X9X_REG_LOFF_SENSP, ads->regData[ADS1X9X_REG_LOFF_SENSP] & ~sensP | sensP);
+      ads->WREG(ADS1X9X_REG_LOFF_SENSN, ads->regData[ADS1X9X_REG_LOFF_SENSP] & ~sensN | sensN);
 
       if (!ads->isContReading()) {
         serial->print(OPENBCI_CMD_LOFF_SUCCESS_MSG);

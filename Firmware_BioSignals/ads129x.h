@@ -25,7 +25,6 @@
 #define ADS129x_REG_CONFIG1_2KSPS 0b00000100          /* HR Mode:  2 kSPS, LP Mode:  1 kSPS */
 #define ADS129x_REG_CONFIG1_1KSPS 0b00000101          /* HR Mode:  1 kSPS, LP Mode: 500 SPS */
 #define ADS129x_REG_CONFIG1_500SPS 0b00000110         /* HR Mode: 500 SPS, LP Mode: 250 SPS */
-#define ADS129x_REG_CONFIG1_RATE_MASK 0b00000111
 // CONFIG 3
 #define ADS129x_REG_CONFIG3_RESERVED 0b01000000  /* Reserved bits to set to 1 */
 // Individual Channel Settings
