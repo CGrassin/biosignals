@@ -28,7 +28,6 @@
 #define ADS129x_REG_CONFIG1_RATE_MASK 0b00000111
 // CONFIG 3
 #define ADS129x_REG_CONFIG3_RESERVED 0b01000000  /* Reserved bits to set to 1 */
-#define ADS129x_REG_CONFIG3_PD_REFBUF 0b10000000 /* Enable internal reference buffer */
 // Individual Channel Settings
 #define ADS129x_REG_CHnSET_GAIN_1 0b00010000
 #define ADS129x_REG_CHnSET_GAIN_2 0b00100000

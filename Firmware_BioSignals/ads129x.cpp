@@ -9,14 +9,20 @@ void ADS129x::all_defaults() {
   // CONFIG1-3
   regData[ADS1x9x_REG_CONFIG1] = /*ADS129x_REG_CONFIG1_HIGH_RES |*/ ADS129x_REG_CONFIG1_500SPS;
   regData[ADS1x9x_REG_CONFIG2] = ADS1x9x_REG_CONFIG2_INT_TEST;
-  regData[ADS1x9x_REG_CONFIG3] = ADS129x_REG_CONFIG3_RESERVED | ADS129x_REG_CONFIG3_PD_REFBUF;
+  regData[ADS1x9x_REG_CONFIG3] = ADS129x_REG_CONFIG3_RESERVED | ADS1x9x_REG_CONFIG3_PD_REFBUF | ADS1x9x_REG_CONFIG3_BIASREF_INT | ADS1x9x_REG_CONFIG3_PD_BIAS;
   WREGS(ADS1x9x_REG_CONFIG1, 3);
+
+  // LEAD OFF
+  WREG(ADS1x9x_REG_LOFF, ADS1x9x_REG_ILEAD_OFF_6_nA | ADS1x9x_REG_FLEAD_OFF_AC_31_2HZ);
+
   channel_defaults();
 }
 void ADS129x::channel_defaults(){
   for(int i = 0; i < 8; i++)
     regData[ADS1x9x_REG_CH1SET + i] = ADS1x9x_REG_CHnSET_MUX_ELECTRODE | ADS129x_REG_CHnSET_GAIN_12;
-  WREGS(ADS1x9x_REG_CH1SET, 8);  
+  WREGS(ADS1x9x_REG_CH1SET, 8);
+  WREG(ADS1x9x_REG_RLD_SENSP, 0xFF);
+  WREG(ADS1x9x_REG_RLD_SENSN, 0xFF);
 }
 uint8_t ADS129x::set_sample_rate(SAMPLE_RATE sr){
   switch (sr) {
@@ -105,6 +111,11 @@ void ADS129x::set_channel_settings(uint8_t channelnumber, bool powerdown, uint8_
     case INPUT_RLD_DRN:
       registerValue |= ADS1x9x_REG_CHnSET_MUX_RLD_DRN;
       break;
+  }
+
+  if (bias) {
+    WREG(ADS1x9x_REG_RLD_SENSP, this->regData[ADS1x9x_REG_RLD_SENSP] & ~(bias << channelnumber) | (bias << channelnumber));
+    WREG(ADS1x9x_REG_RLD_SENSN, this->regData[ADS1x9x_REG_RLD_SENSN] & ~(bias << channelnumber) | (bias << channelnumber));
   }
 
   this->WREG(ADS1x9x_REG_CH1SET + channelnumber, registerValue);

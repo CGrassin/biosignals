@@ -159,8 +159,11 @@ void OpenBCI::processCMD() {
     case OPENBCI_CHANNEL_IMPEDANCE_SET:
     {
       uint8_t channel = getChannelFromCommand(cmdBuffer[1]);
-      ads->WREG(ADS1x9x_REG_LOFF_SENSP, (cmdBuffer[2] == OPENBCI_CHANNEL_IMPEDANCE_TEST_SIGNAL_APPLIED) << channel);
-      ads->WREG(ADS1x9x_REG_LOFF_SENSN, (cmdBuffer[3] == OPENBCI_CHANNEL_IMPEDANCE_TEST_SIGNAL_APPLIED) << channel);
+      uint8_t sensP = (cmdBuffer[2] == OPENBCI_CHANNEL_IMPEDANCE_TEST_SIGNAL_APPLIED) << channel;
+      uint8_t sensN = (cmdBuffer[3] == OPENBCI_CHANNEL_IMPEDANCE_TEST_SIGNAL_APPLIED) << channel;
+
+      ads->WREG(ADS1x9x_REG_LOFF_SENSP, ads->regData[ADS1x9x_REG_LOFF_SENSP] & ~sensP | sensP);
+      ads->WREG(ADS1x9x_REG_LOFF_SENSN, ads->regData[ADS1x9x_REG_LOFF_SENSP] & ~sensN | sensN);
 
       if (!ads->isContReading()) {
         serial->print(OPENBCI_CMD_LOFF_SUCCESS_MSG);
@@ -216,6 +219,26 @@ void OpenBCI::processCMD() {
           case '~': return; // FIXME
         }
         this->downsampling_factor = ads->set_sample_rate(sr);
+      }
+      break;
+    case OPENBCI_MISC_QUERY_REGISTER_SETTINGS:
+      if(ads->isContReading()) {
+        serial->println("Board ADS Registers");
+        for(int i = 0; i < 24; i++){
+          // printRegisterName(i); TODO
+          printHex(i);
+          serial->print(", ");
+          printHex(ads->regData[i]);
+          serial->print(", ");
+          for (int j = 0; j < 8; j++) {
+            char buf[3];
+            // printAll(itoa(bitRead(regData[_address + i], 7 - j), buf, DEC)); TODO
+            if (j != 7)
+              serial->print(", ");
+          }
+          serial->println();
+        }
+        serial->println(OPENBCI_EOT);        
       }
       break;
   }

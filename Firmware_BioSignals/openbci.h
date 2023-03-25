@@ -169,7 +169,7 @@
 #define OPENBCI_CMD_SET_SAMPLERATE_MSG_1 "Hz$$$"
 #define OPENBCI_CMD_TESTSIGNAL_SUCCESS_MSG "Success: Configured internal test signal.$$$"
 #define OPENBCI_CMD_CHANNEL_DEFAULTS_UPDATE_MSG "updating channel settings to default$$$"
-#define OPENBCI_CMD_CHANNEL_DEFAULTS_MSG "050000$$$"
+#define OPENBCI_CMD_CHANNEL_DEFAULTS_MSG "050100$$$"
 #define OPENBCI_CMD_LOFF_SUCCESS_MSG "Success: Lead off set for "
 
 class OpenBCI {
