@@ -148,3 +148,13 @@ void ADS129x::set_channel_settings(uint8_t channelnumber, bool powerdown, uint8_
 
   this->WREG(ADS1X9X_REG_CH1SET + channelnumber, registerValue);
 }
+
+const char * ADS129x::getRegisterName(uint8_t _address){
+  switch (_address) {
+    case ADS129x_REG_PACE: return "PACE";
+    case ADS129x_REG_RESP: return "RESP";
+    case ADS129x_REG_WCT1: return "WCT1";
+    case ADS129x_REG_WCT2: return "WCT2";
+    default: return ADS1X9X::getRegisterName(_address);
+  }
+}

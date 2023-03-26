@@ -4,6 +4,8 @@ Forked from https://github.com/OpenBCI/Documentation
 
 ## Data format
 
+BioSignals sends 33 bytes long packets, following the OpenBCI Cyton data output format.
+
 Each packet contains a header followed by a sample counter, followed by 8 ADS channel data, followed by the three axes values of the accelerometer, followed by a footer. The accelerometer data are optional, and don't need to be sent with every packet when used. if unused, the bytes will read 0. This allows for user defined auxiliary data to be sent in the last six bytes before the footer. Also, there may be room for compressing more samples. Here are details on the format.
 
 **Header**
@@ -33,21 +35,22 @@ Note: values are 24-bit signed, MSB first
 
 The following table is sorted by `Stop Byte`. Drivers should use the `Stop Byte` to determine how to parse the 6 `AUX` bytes.
 
-| Stop Byte | Byte 27 | Byte 28 | Byte 29 | Byte 30 | Byte 31 | Byte 32 | Name                                |
-| :-------: | :-----: | :-----: | :-----: | :-----: | :-----: | :-----: | ----------------------------------- |
-|    0xC0   |   AX1   |   AX0   |   AY1   |   AY0   |   AZ1   |   AZ0   | Standard with accel                 |
-|    0xC1   |   UDF   |   UDF   |   UDF   |   UDF   |   UDF   |   UDF   | Standard with raw aux               |
-|    0xC2   |   UDF   |   UDF   |   UDF   |   UDF   |   UDF   |   UDF   | User defined                        |
-|    0xC3   |    AC   |    AV   |    T3   |    T2   |    T1   |    T0   | Time stamped **_set_** with accel   |
-|    0xC4   |    AC   |    AV   |    T3   |    T2   |    T1   |    T0   | Time stamped with accel             |
-|    0xC5   |   UDF   |   UDF   |    T3   |    T2   |    T1   |    T0   | Time stamped **_set_** with raw aux |
-|    0xC6   |   UDF   |   UDF   |    T3   |    T2   |    T1   |    T0   | Time stamped with raw aux           |
+| Byte 27 | Byte 28 | Byte 29 | Byte 30 | Byte 31 | Byte 32 | Stop Byte | Name                                |
+| :-----: | :-----: | :-----: | :-----: | :-----: | :-----: | :-------: | ----------------------------------- |
+|   AX1   |   AX0   |   AY1   |   AY0   |   AZ1   |   AZ0   |    0xC0   | Standard with accel                 |
+|   UDF   |   UDF   |   UDF   |   UDF   |   UDF   |   UDF   |    0xC1   | Standard with raw aux               |
+|   UDF   |   UDF   |   UDF   |   UDF   |   UDF   |   UDF   |    0xC2   | User defined                        |
+|    AC   |    AV   |    T3   |    T2   |    T1   |    T0   |    0xC3   | Time stamped **_set_** with accel   |
+|    AC   |    AV   |    T3   |    T2   |    T1   |    T0   |    0xC4   | Time stamped with accel             |
+|   UDF   |   UDF   |    T3   |    T2   |    T1   |    T0   |    0xC5   | Time stamped **_set_** with raw aux |
+|   UDF   |   UDF   |    T3   |    T2   |    T1   |    T0   |    0xC6   | Time stamped with raw aux           |
 
-### 24-Bit Signed Data Values
 
-For the EEG data values, you will note that we are transferring the data as a 24-bit signed integer, which is a bit unusual. We are using this number format because it is the native format used by the ADS129x chip that is at the core of the Cyton board. To convert this unusual number format into a more standard 32-bit signed integer, you can steal some ideas from the example Processing (aka, Java) code:
+### 24-Bit Signed Data Values conversion
 
-```
+For the EEG data values, you will note that we are transferring the data as a 24-bit signed integer, which is a bit unusual. We are using this number format because it is the native format used by the ADS129x chip that is at the core of the BioSignals board. To convert this unusual number format into a more standard 32-bit signed integer, you can use the following snippet (Java):
+
+```java
 
 int interpret24bitAsInt32(byte[] byteArray) {     
     int newInt = (  
@@ -93,11 +96,10 @@ These ASCII characters turn the respective channels [1-8] on. The channel will r
 
 **returns** none, there is no confirmation.
 
-
 ### Test Signal Control Commands
 
 **0 - = p [ ]**  
-Turn **all** available channels on, and connect them to internal test signal. These are useful for self test and calibration. For example, you can measure the internal noise by sending **0** which connects all inputs to an internal GND. If streaming, the stream will be stopped, the proper registers set on the ADS1299, and the stream will be resumed.
+Turn **all** available channels on, and connect them to internal test signal. These are useful for self test and calibration. For example, you can measure the internal noise by sending **0** which connects all inputs to an internal GND. If streaming, the stream will be stopped, the proper registers set on the ADS1x9x, and the stream will be resumed.
 
 -   **0**  Connect to internal GND (VDD - VSS)  
 -   **-**  Connect to test signal 1xAmplitude, slow pulse  
@@ -169,9 +171,9 @@ Select to connect all channels' N inputs to SRB1. This effects all pins, and dis
 
 User sends **x  3  0  2  0  0  0  0  X**
 
-'x' enters Channel Settings mode. Channel 3 is set up to be powered up, with gain of 2, normal input, removed from BIAS generation, removed from SRB2, removed from SRB1. The final 'X' latches the settings to the ADS1299 channel settings register.
+'x' enters Channel Settings mode. Channel 3 is set up to be powered up, with gain of 2, normal input, removed from BIAS generation, removed from SRB2, removed from SRB1. The final 'X' latches the settings to the ADS1x9x channel settings register.
 
-For firmware `v0` and `v1` it is required that you allow a time delay (&gt;10mS) when setting the channel and parameters. As of `v2.0.0`, you may stack multiple channel settings together such as:
+You may stack multiple channel settings together such as:
 
 **EXAMPLE**
 
@@ -194,6 +196,8 @@ On failure:
     -   Too many characters or some other issue, `Failure: Err: too many chars$$$`
 -   If not all commands are not received within 1 second, `Timeout processing multi byte message - please send all commands at once as of v2$$$`
 
+**Note: 24&times; gain, SRB1_SET and SRB2_SET are only supported by the ADS1299.**
+
 ### Default Channel Settings
 
 **d** To set all channels to default  
@@ -204,7 +208,7 @@ On failure:
 
 **returns** When you query the default settings, expect to get 6 ASCII characters followed by **$$$**
 
-_Note: Users can change the default channel settings in the initialization function inside the OpenBCI library. Requires re-programming the board._
+<!-- _Note: Users can change the default channel settings in the initialization function inside the OpenBCI library. Requires re-programming the board._ -->
 
 ### LeadOff Impedance Commands
 
@@ -258,19 +262,23 @@ Stop logging data and close SD file   -->
 **b**  
 Start streaming data
 
-**returns** none, there is no confirmation. NOTE: when command from WiFi shield, confirmation is `Stream started`.
+**returns** none, there is no confirmation. 
+
+<!-- NOTE: when command from WiFi shield, confirmation is `Stream started`. -->
 
 **s**  
 Stop Streaming data  
 
-**returns** none, there is no confirmation. NOTE: when command from WiFi shield, confirmation is `Stream stopped`.
+**returns** none, there is no confirmation. 
+
+<!-- NOTE: when command from WiFi shield, confirmation is `Stream stopped`. -->
 
 ### Miscellaneous
 
-<!-- **?**  
+**?**  
 Query register settings  
 
-**returns** Read and report all register settings for the ADS1299 and the LIS3DH. Expect to get a verbose serial output from the OpenBCI Board, followed by **$$$**   -->
+**returns** Read and report all register settings for the ADS1x9x ~and the LIS3DH~. Expect to get a verbose serial output from the OpenBCI Board, followed by **$$$**  
 
 **v**
 
@@ -290,7 +298,7 @@ This works similar to the Channel Settings commands, however, there is no latchi
 -   4 = 1000 Hz
 -   5 = 500 Hz
 -   6 = 250 Hz
--   7 = 125 Hz
+-   7 = 125 Hz *(not supported by OpenBCI, BioSignals-specific)*
 -   ~ = Get current sample rate
 
 **EXAMPLE**

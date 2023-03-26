@@ -48,5 +48,12 @@ public:
   void channel_defaults();
   virtual uint8_t set_sample_rate(SAMPLE_RATE sr);
   virtual void set_channel_settings(uint8_t channelnumber, bool powerdown, uint8_t gain, INPUT_TYPE mux, bool bias, bool srb2, bool srb1);
+  const char * ADS1299::getRegisterName(uint8_t _address){
+    switch (_address) {
+      case ADS1299_REG_MISC1: return "MISC1";
+      case ADS1299_REG_MISC2: return "MISC2";
+      default: ADS1X9X::getRegisterName(_address);
+    }
+  }
 };
 #endif

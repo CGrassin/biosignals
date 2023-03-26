@@ -8,7 +8,7 @@ OpenBCI::OpenBCI(ADS1X9X* ads, HardwareSerial* serial) {
 void OpenBCI::startUpMessage(){
   serial->println("OpenBCI V3 8-16 channel");
   serial->print("ADS1298 Device ID: 0x");
-  printHex(ads->RREG(ADS1X9X_REG_ID));
+  printHex(ads->regData[ADS1X9X_REG_ID]);
   serial->println();
   serial->println("LIS3DH Device ID: 0x00");
   serial->print("Firmware: ");
@@ -242,14 +242,14 @@ void OpenBCI::processCMD() {
       if(!ads->isContReading()) {
         serial->println("Board ADS Registers");
         for(int i = 0; i < 24; i++){
-          // printRegisterName(i); TODO
-          // serial->print(", ");
+          serial->print(ads->getRegisterName(i));
+          serial->print(", ");
           printHex(i);  
           serial->print(", ");
           printHex(ads->regData[i]);
           serial->print(", ");
           for (int j = 0; j < 8; j++) {
-            serial->print((ads->regData[i] >> j) & 0x01);
+            serial->print((ads->regData[i] >> (7-j)) & 0x01);
             if (j != 7)
               serial->print(", ");
           }

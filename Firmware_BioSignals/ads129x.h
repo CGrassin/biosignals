@@ -44,5 +44,6 @@ public:
   void channel_defaults();
   virtual uint8_t set_sample_rate(SAMPLE_RATE sr);
   virtual void set_channel_settings(uint8_t channelnumber, bool powerdown, uint8_t gain, INPUT_TYPE mux, bool bias, bool srb2, bool srb1);
+  virtual const char * getRegisterName(uint8_t _address);
 };
 #endif

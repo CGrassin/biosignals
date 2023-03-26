@@ -165,12 +165,13 @@ public:
   void switch_channel(uint8_t channelnumber, bool powerdown);
   bool isContReading();
   virtual void read_data();
+  virtual const char * getRegisterName(uint8_t _address);
 
   // Abstract functions (IC-specific)
   virtual void all_defaults() = 0;
   virtual void channel_defaults() = 0;
   virtual uint8_t set_sample_rate(SAMPLE_RATE sr) = 0; // Return the downsampling rate required to reach the desired SPS
-  virtual void set_channel_settings(uint8_t channelnumber, bool powerdown, uint8_t gain, INPUT_TYPE mux, bool bias, bool srb2, bool srb1) = 0; // TODO
+  virtual void set_channel_settings(uint8_t channelnumber, bool powerdown, uint8_t gain, INPUT_TYPE mux, bool bias, bool srb2, bool srb1) = 0;
 };
 
 #endif
