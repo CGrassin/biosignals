@@ -52,10 +52,11 @@
 #define ADS1X9X_REG_LOFF_STATN 0x13
 // GPIO AND OTHER REGISTERS
 #define ADS1X9X_REG_GPIO 0x14
+// 0x15 and 0x16 are device-specific
 #define ADS1X9X_REG_CONFIG4 0x17
+// 0x18 and 0x19 are device-specific
 // ---------------------
-
-// CONFIG BIT MASKS
+// CONFIG BIT MASKS (only the common ones)
 #define ADS1X9X_REG_CHnSET_PD 0b10000000 /* Channel power-down */
 #define ADS1X9X_REG_CHnSET_MUX_ELECTRODE 0b00000000
 #define ADS1X9X_REG_CHnSET_MUX_SHORTED 0b00000001
@@ -100,6 +101,7 @@
 #define ADS1X9X_REG_FLEAD_OFF_AC_7_8HZ 0b00000001
 #define ADS1X9X_REG_FLEAD_OFF_AC_31_2HZ 0b00000010
 #define ADS1X9X_REG_FLEAD_OFF_AC_FdrDIV4 0b00000011
+// ---------------------
 
 /**
 Abstract interface to support all ADS ICs.

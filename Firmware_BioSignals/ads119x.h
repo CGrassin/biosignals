@@ -2,7 +2,7 @@
 * This class supports: ADS1194, ADS1196, ADS1198.
 * This chip is identical to ADS129X but:
 * * HR/LP selection doesn't exist TODO
-* * SAMPLE RATE is not the same TODO
+* * SAMPLE RATE is not the same
 * * The data out is 16 bits instead of 24 bits
 */
 #ifndef __ADS119X_INCLUDE
@@ -42,6 +42,36 @@ public:
       this->data[i*3 + 2] = 0x00; // 16 bits
     }
     digitalWrite(cs_pin, HIGH);
+  }
+  uint8_t set_sample_rate(SAMPLE_RATE sr){
+    switch (sr) {
+      case SAMPLE_RATE_16000: // This chip can't do 16kHz, set max possible sample rate instead
+        this->WREG(ADS1X9X_REG_CONFIG1, this->regData[ADS1X9X_REG_CONFIG1] & ~ADS1X9X_REG_CONFIG1_RATE_MASK | ADS119x_REG_CONFIG1_8KSPS);
+        break;
+      case SAMPLE_RATE_8000:
+        this->WREG(ADS1X9X_REG_CONFIG1, this->regData[ADS1X9X_REG_CONFIG1] & ~ADS1X9X_REG_CONFIG1_RATE_MASK | ADS119x_REG_CONFIG1_8KSPS);
+        break;
+      case SAMPLE_RATE_4000:
+        this->WREG(ADS1X9X_REG_CONFIG1, this->regData[ADS1X9X_REG_CONFIG1] & ~ADS1X9X_REG_CONFIG1_RATE_MASK | ADS119x_REG_CONFIG1_4KSPS);
+        break;
+      case SAMPLE_RATE_2000:
+        this->WREG(ADS1X9X_REG_CONFIG1, this->regData[ADS1X9X_REG_CONFIG1] & ~ADS1X9X_REG_CONFIG1_RATE_MASK | ADS119x_REG_CONFIG1_2KSPS);
+        break;
+      case SAMPLE_RATE_1000:
+        this->WREG(ADS1X9X_REG_CONFIG1, this->regData[ADS1X9X_REG_CONFIG1] & ~ADS1X9X_REG_CONFIG1_RATE_MASK | ADS119x_REG_CONFIG1_1KSPS);
+        break;
+      case SAMPLE_RATE_500:
+        this->WREG(ADS1X9X_REG_CONFIG1, this->regData[ADS1X9X_REG_CONFIG1] & ~ADS1X9X_REG_CONFIG1_RATE_MASK | ADS119x_REG_CONFIG1_500SPS);
+        break;
+      case SAMPLE_RATE_250:
+        this->WREG(ADS1X9X_REG_CONFIG1, this->regData[ADS1X9X_REG_CONFIG1] & ~ADS1X9X_REG_CONFIG1_RATE_MASK | ADS119x_REG_CONFIG1_250SPS);
+        break;
+      case SAMPLE_RATE_125:
+      default:
+        this->WREG(ADS1X9X_REG_CONFIG1, this->regData[ADS1X9X_REG_CONFIG1] & ~ADS1X9X_REG_CONFIG1_RATE_MASK | ADS119x_REG_CONFIG1_125SPS);
+        break;
+    }
+    return 1;
   }
 };
 

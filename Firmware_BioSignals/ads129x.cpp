@@ -1,11 +1,11 @@
 #include "ads129x.h"
 
-ADS129x::ADS129x(int cs_pin_set, int drdy_pin_set, int reset_pin_set, SPIClass* spi_set) 
-: ADS1X9X(cs_pin_set, drdy_pin_set, reset_pin_set, spi_set){}
+ADS129x::ADS129x(int cs_pin_set, int drdy_pin_set, int reset_pin_set, SPIClass* spi_set)
+  : ADS1X9X(cs_pin_set, drdy_pin_set, reset_pin_set, spi_set) {}
 
 void ADS129x::all_defaults() {
-  RREGS(0,24); // Fetch registers
-  
+  RREGS(0, 24);  // Fetch registers
+
   // CONFIG1-3
   regData[ADS1X9X_REG_CONFIG1] = ADS129x_REG_CONFIG1_HIGH_RES | ADS129x_REG_CONFIG1_500SPS;
   regData[ADS1X9X_REG_CONFIG2] = ADS1X9X_REG_CONFIG2_INT_TEST;
@@ -17,15 +17,15 @@ void ADS129x::all_defaults() {
 
   channel_defaults();
 }
-void ADS129x::channel_defaults(){
-  for(int i = 0; i < 8; i++)
+void ADS129x::channel_defaults() {
+  for (int i = 0; i < 8; i++)
     regData[ADS1X9X_REG_CH1SET + i] = ADS1X9X_REG_CHnSET_MUX_ELECTRODE | ADS129x_REG_CHnSET_GAIN_12;
   WREGS(ADS1X9X_REG_CH1SET, 8);
   WREG(ADS1X9X_REG_RLD_SENSP, 0xFF);
   WREG(ADS1X9X_REG_RLD_SENSN, 0xFF);
 }
-uint8_t ADS129x::set_sample_rate(SAMPLE_RATE sr){
-  if(regData[ADS1X9X_REG_CONFIG1] & ADS129x_REG_CONFIG1_HIGH_RES)
+uint8_t ADS129x::set_sample_rate(SAMPLE_RATE sr) {
+  if (regData[ADS1X9X_REG_CONFIG1] & ADS129x_REG_CONFIG1_HIGH_RES)  // For the ADS129x chips, the actual sample rate depends on the HR/LP bit
     switch (sr) {
       case SAMPLE_RATE_16000:
         this->WREG(ADS1X9X_REG_CONFIG1, this->regData[ADS1X9X_REG_CONFIG1] & ~ADS1X9X_REG_CONFIG1_RATE_MASK | ADS129x_REG_CONFIG1_16KSPS);
@@ -83,13 +83,13 @@ uint8_t ADS129x::set_sample_rate(SAMPLE_RATE sr){
   return 1;
 }
 
-void ADS129x::set_channel_settings(uint8_t channelnumber, bool powerdown, uint8_t gain, INPUT_TYPE mux, bool bias, bool srb2, bool srb1){
+void ADS129x::set_channel_settings(uint8_t channelnumber, bool powerdown, uint8_t gain, INPUT_TYPE mux, bool bias, bool srb2, bool srb1) {
   uint8_t registerValue = 0;
 
-  if(powerdown)
+  if (powerdown)
     registerValue |= ADS1X9X_REG_CHnSET_PD;
 
-  switch(gain){
+  switch (gain) {
     case 1:
       registerValue |= ADS129x_REG_CHnSET_GAIN_1;
       break;
