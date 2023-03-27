@@ -71,9 +71,6 @@ void setup() {
   // Bluetooth
   BT_SERIAL.begin(BT_SERIAL_SPEED);
 
-  // ADS1298
-  ads.init();
-
   // SD card (open card and file)
   #ifdef SD_CARD_ENABLE 
     if (SD.begin(SD2_CONFIG)) {
@@ -89,7 +86,9 @@ void setup() {
     else
        USB_SERIAL.println("Failed open SD");
   #endif
-  openbci.startUpMessage();
+
+  // Init the OpenBCI and ADS
+  openbci.init();
 }
 
 void loop() {

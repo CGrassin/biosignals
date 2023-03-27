@@ -107,13 +107,6 @@
 Abstract interface to support all ADS ICs.
 */
 class ADS1X9X {
-protected:
-  int cs_pin;
-  int drdy_pin;
-  int reset_pin;
-  SPIClass* spi;
-  bool contReading = false;
-
 public:
   uint8_t regData[24];  // array is used to mirror register data
   uint8_t status[3]; // contains sampled last data
@@ -166,12 +159,20 @@ public:
   bool isContReading();
   virtual void read_data();
   virtual const char * getRegisterName(uint8_t _address);
+  virtual uint8_t set_channel_settings(uint8_t channelnumber, bool powerdown, uint8_t gain, INPUT_TYPE mux, bool bias, bool srb2, bool srb1);
 
   // Abstract functions (IC-specific)
-  virtual void all_defaults() = 0;
-  virtual void channel_defaults() = 0;
   virtual uint8_t set_sample_rate(SAMPLE_RATE sr) = 0; // Return the downsampling rate required to reach the desired SPS
-  virtual void set_channel_settings(uint8_t channelnumber, bool powerdown, uint8_t gain, INPUT_TYPE mux, bool bias, bool srb2, bool srb1) = 0;
+
+protected:
+  int cs_pin;
+  int drdy_pin;
+  int reset_pin;
+  SPIClass* spi;
+  bool contReading = false;
+
+  // Abstract function (IC-specific)
+  virtual void all_defaults() = 0;
 };
 
 #endif

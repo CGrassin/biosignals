@@ -41,9 +41,8 @@ class ADS129x: public ADS1X9X{
 public:
   ADS129x(int cs_pin_set, int drdy_pin_set, int reset_pin_set, SPIClass* spi_set);
   void all_defaults();
-  void channel_defaults();
   virtual uint8_t set_sample_rate(SAMPLE_RATE sr);
-  virtual void set_channel_settings(uint8_t channelnumber, bool powerdown, uint8_t gain, INPUT_TYPE mux, bool bias, bool srb2, bool srb1);
+  virtual uint8_t set_channel_settings(uint8_t channelnumber, bool powerdown, uint8_t gain, INPUT_TYPE mux, bool bias, bool srb2, bool srb1);
   virtual const char * getRegisterName(uint8_t _address);
 };
 #endif

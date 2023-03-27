@@ -120,6 +120,7 @@ void ADS1X9X::hard_reset(){
 }
 void ADS1X9X::soft_reset(){
   RESET();
+  delayMicroseconds(1000); // give some time for the IC to reset
   all_defaults();
 }
 void ADS1X9X::switch_channel(uint8_t channelnumber, bool powerdown) {
@@ -138,4 +139,72 @@ void ADS1X9X::read_data() {
   for (int i = 0; i < 8 * 3; i++)
     this->data[i] = spi->transfer(0);
   digitalWrite(cs_pin, HIGH);
+}
+const char * ADS1X9X::getRegisterName(uint8_t _address){
+  switch (_address) {
+    case ADS1X9X_REG_ID: return "ADS_ID";
+    case ADS1X9X_REG_CONFIG1: return "CONFIG1";
+    case ADS1X9X_REG_CONFIG2: return "CONFIG2";
+    case ADS1X9X_REG_CONFIG3: return "CONFIG3";
+    case ADS1X9X_REG_LOFF: return "LOFF";
+    case ADS1X9X_REG_CH1SET: return "CH1SET";
+    case ADS1X9X_REG_CH2SET: return "CH2SET";
+    case ADS1X9X_REG_CH3SET: return "CH3SET";
+    case ADS1X9X_REG_CH4SET: return "CH4SET";
+    case ADS1X9X_REG_CH5SET: return "CH5SET";
+    case ADS1X9X_REG_CH6SET: return "CH6SET";
+    case ADS1X9X_REG_CH7SET: return "CH7SET";
+    case ADS1X9X_REG_CH8SET: return "CH8SET";
+    case ADS1X9X_REG_RLD_SENSP: return "BIAS_SENSP";
+    case ADS1X9X_REG_RLD_SENSN: return "BIAS_SENSN";
+    case ADS1X9X_REG_LOFF_SENSP: return "LOFF_SENSP";
+    case ADS1X9X_REG_LOFF_SENSN: return "LOFF_SENSN";
+    case ADS1X9X_REG_LOFF_FLIP: return "LOFF_FLIP";
+    case ADS1X9X_REG_LOFF_STATP: return "LOFF_STATP";
+    case ADS1X9X_REG_LOFF_STATN: return "LOFF_STATN";
+    case ADS1X9X_REG_GPIO: return "GPIO";
+    case ADS1X9X_REG_CONFIG4: return "CONFIG4";
+    default: return "RESERVED";
+  }
+}
+uint8_t ADS1X9X::set_channel_settings(uint8_t channelnumber, bool powerdown, uint8_t gain, INPUT_TYPE mux, bool bias, bool srb2, bool srb1) {
+  uint8_t registerValue = 0;
+
+  if (powerdown)
+    registerValue |= ADS1X9X_REG_CHnSET_PD;
+
+  switch (mux) {
+    default:
+    case INPUT_NORMAL:
+      registerValue |= ADS1X9X_REG_CHnSET_MUX_ELECTRODE;
+      break;
+    case INPUT_SHORTED:
+      registerValue |= ADS1X9X_REG_CHnSET_MUX_SHORTED;
+      break;
+    case INPUT_RLD:
+      registerValue |= ADS1X9X_REG_CHnSET_MUX_RLD;
+      break;
+    case INPUT_MVDD:
+      registerValue |= ADS1X9X_REG_CHnSET_MUX_MVDD;
+      break;
+    case INPUT_TEMP:
+      registerValue |= ADS1X9X_REG_CHnSET_MUX_TEMP;
+      break;
+    case INPUT_TEST:
+      registerValue |= ADS1X9X_REG_CHnSET_MUX_TEST;
+      break;
+    case INPUT_RLD_DRP:
+      registerValue |= ADS1X9X_REG_CHnSET_MUX_RLD_DRP;
+      break;
+    case INPUT_RLD_DRN:
+      registerValue |= ADS1X9X_REG_CHnSET_MUX_RLD_DRN;
+      break;
+  }
+
+  if (bias) {
+    WREG(ADS1X9X_REG_RLD_SENSP, this->regData[ADS1X9X_REG_RLD_SENSP] & ~(bias << channelnumber) | (bias << channelnumber));
+    WREG(ADS1X9X_REG_RLD_SENSN, this->regData[ADS1X9X_REG_RLD_SENSN] & ~(bias << channelnumber) | (bias << channelnumber));
+  }
+
+  return registerValue;
 }

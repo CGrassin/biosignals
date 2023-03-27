@@ -43,10 +43,39 @@
 
 class ADS1299: public ADS1X9X{
 public:
-  ADS1299(int cs_pin_set, int drdy_pin_set, int reset_pin_set, SPIClass* spi_set);
-  void all_defaults();
-  void channel_defaults();
-  virtual uint8_t set_sample_rate(SAMPLE_RATE sr);
+  ADS1299(int cs_pin_set, int drdy_pin_set, int reset_pin_set, SPIClass* spi_set); // TODO
+  void all_defaults(); // TODO
+  uint8_t set_sample_rate(SAMPLE_RATE sr){
+    switch (sr) {
+      case SAMPLE_RATE_16000:
+        this->WREG(ADS1X9X_REG_CONFIG1, this->regData[ADS1X9X_REG_CONFIG1] & ~ADS1X9X_REG_CONFIG1_RATE_MASK | ADS1299_REG_CONFIG1_16KSPS);
+        break;
+      case SAMPLE_RATE_8000:
+        this->WREG(ADS1X9X_REG_CONFIG1, this->regData[ADS1X9X_REG_CONFIG1] & ~ADS1X9X_REG_CONFIG1_RATE_MASK | ADS1299_REG_CONFIG1_8KSPS);
+        break;
+      case SAMPLE_RATE_4000:
+        this->WREG(ADS1X9X_REG_CONFIG1, this->regData[ADS1X9X_REG_CONFIG1] & ~ADS1X9X_REG_CONFIG1_RATE_MASK | ADS1299_REG_CONFIG1_4KSPS);
+        break;
+      case SAMPLE_RATE_2000:
+        this->WREG(ADS1X9X_REG_CONFIG1, this->regData[ADS1X9X_REG_CONFIG1] & ~ADS1X9X_REG_CONFIG1_RATE_MASK | ADS1299_REG_CONFIG1_2KSPS);
+        break;
+      case SAMPLE_RATE_1000:
+        this->WREG(ADS1X9X_REG_CONFIG1, this->regData[ADS1X9X_REG_CONFIG1] & ~ADS1X9X_REG_CONFIG1_RATE_MASK | ADS1299_REG_CONFIG1_1KSPS);
+        break;
+      case SAMPLE_RATE_500:
+        this->WREG(ADS1X9X_REG_CONFIG1, this->regData[ADS1X9X_REG_CONFIG1] & ~ADS1X9X_REG_CONFIG1_RATE_MASK | ADS1299_REG_CONFIG1_500SPS);
+        break;
+      case SAMPLE_RATE_250:
+        this->WREG(ADS1X9X_REG_CONFIG1, this->regData[ADS1X9X_REG_CONFIG1] & ~ADS1X9X_REG_CONFIG1_RATE_MASK | ADS1299_REG_CONFIG1_250SPS);
+        break;
+      case SAMPLE_RATE_125:
+      default:
+        this->WREG(ADS1X9X_REG_CONFIG1, this->regData[ADS1X9X_REG_CONFIG1] & ~ADS1X9X_REG_CONFIG1_RATE_MASK | ADS1299_REG_CONFIG1_250SPS);
+        return 2;
+        break;
+    }
+    return 1;
+  }
   virtual void set_channel_settings(uint8_t channelnumber, bool powerdown, uint8_t gain, INPUT_TYPE mux, bool bias, bool srb2, bool srb1);
   const char * ADS1299::getRegisterName(uint8_t _address){
     switch (_address) {

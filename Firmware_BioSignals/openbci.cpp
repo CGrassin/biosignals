@@ -5,6 +5,20 @@ OpenBCI::OpenBCI(ADS1X9X* ads, HardwareSerial* serial) {
   this->ads = ads;
   this->serial = serial;
 }
+void OpenBCI::init(){
+  // Init ADS
+  ads->init();
+
+  // Default sample rate
+  this->downsampling_factor = ads->set_sample_rate(OPENBCI_DEFAULT_SAMPLERATE);
+
+  // Default channel settings
+  for(int i=0;i<8;i++)
+    ads->set_channel_settings(i, OPENBCI_CHANNEL_DEFAULT_PD, OPENBCI_CHANNEL_DEFAULT_GAIN, OPENBCI_CHANNEL_DEFAULT_INPUT_TYPE, OPENBCI_CHANNEL_DEFAULT_BIAS, OPENBCI_CHANNEL_DEFAULT_SRB2, OPENBCI_CHANNEL_DEFAULT_SRB1);
+
+  startUpMessage();
+}
+
 void OpenBCI::startUpMessage(){
   serial->println("OpenBCI V3 8-16 channel");
   serial->print("ADS1298 Device ID: 0x");
@@ -101,7 +115,8 @@ void OpenBCI::processCMD() {
       break;
 
     case OPENBCI_CHANNEL_DEFAULT_ALL_SET:
-      ads->channel_defaults();
+      for(int i=0;i<8;i++)
+        ads->set_channel_settings(i, OPENBCI_CHANNEL_DEFAULT_PD, OPENBCI_CHANNEL_DEFAULT_GAIN, OPENBCI_CHANNEL_DEFAULT_INPUT_TYPE, OPENBCI_CHANNEL_DEFAULT_BIAS, OPENBCI_CHANNEL_DEFAULT_SRB2, OPENBCI_CHANNEL_DEFAULT_SRB1);
       if(!ads->isContReading())
         serial->print(OPENBCI_CMD_CHANNEL_DEFAULTS_UPDATE_MSG);
       break;
@@ -179,7 +194,7 @@ void OpenBCI::processCMD() {
 
     case OPENBCI_CHANNEL_CMD_SET: 
       {
-        uint8_t gain = 1;
+        uint8_t gain = OPENBCI_CHANNEL_DEFAULT_GAIN;
         switch (cmdBuffer[3]) {
           case OPENBCI_CHANNEL_CMD_GAIN_1: gain = 1; break;
           case OPENBCI_CHANNEL_CMD_GAIN_2: gain = 2; break;
@@ -187,8 +202,9 @@ void OpenBCI::processCMD() {
           case OPENBCI_CHANNEL_CMD_GAIN_6: gain = 6; break;
           case OPENBCI_CHANNEL_CMD_GAIN_8: gain = 8; break;
           case OPENBCI_CHANNEL_CMD_GAIN_12: gain = 12; break;
+          case OPENBCI_CHANNEL_CMD_GAIN_24: gain = 24; break;
         }
-        ADS1X9X::INPUT_TYPE mux = ADS1X9X::INPUT_NORMAL;
+        ADS1X9X::INPUT_TYPE mux = OPENBCI_CHANNEL_DEFAULT_INPUT_TYPE;
         switch (cmdBuffer[4]) {
           case OPENBCI_CHANNEL_CMD_ADC_Normal: mux = ADS1X9X::INPUT_NORMAL; break;
           case OPENBCI_CHANNEL_CMD_ADC_Shorted: mux = ADS1X9X::INPUT_SHORTED; break;
@@ -217,7 +233,7 @@ void OpenBCI::processCMD() {
         }
       }
       else{
-        ADS1X9X::SAMPLE_RATE sr = ADS1X9X::SAMPLE_RATE_125;
+        ADS1X9X::SAMPLE_RATE sr = OPENBCI_DEFAULT_SAMPLERATE;
         switch (cmdBuffer[1]) {
           case '0': sr = ADS1X9X::SAMPLE_RATE_16000; break;
           case '1': sr = ADS1X9X::SAMPLE_RATE_8000; break;
@@ -225,7 +241,6 @@ void OpenBCI::processCMD() {
           case '3': sr = ADS1X9X::SAMPLE_RATE_2000; break;
           case '4': sr = ADS1X9X::SAMPLE_RATE_1000; break;
           case '5': sr = ADS1X9X::SAMPLE_RATE_500; break;
-          default:
           case '6': sr = ADS1X9X::SAMPLE_RATE_250; break;
           case '7': sr = ADS1X9X::SAMPLE_RATE_125; break;
         }

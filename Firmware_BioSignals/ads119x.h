@@ -31,7 +31,8 @@
 
 class ADS119x: public ADS129X{
 public:
-  ADS119x(int cs_pin_set, int drdy_pin_set, int reset_pin_set, SPIClass* spi_set);
+  ADS119x(int cs_pin_set, int drdy_pin_set, int reset_pin_set, SPIClass* spi_set); //TODO
+  void all_defaults(); //TODO
   virtual void read_data() {
     digitalWrite(cs_pin, LOW);
     for (int i = 0; i < 3; i++) 

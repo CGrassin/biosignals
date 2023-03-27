@@ -170,8 +170,17 @@
 #define OPENBCI_CMD_SET_SAMPLERATE_MSG_1 "Hz$$$"
 #define OPENBCI_CMD_TESTSIGNAL_SUCCESS_MSG "Success: Configured internal test signal.$$$"
 #define OPENBCI_CMD_CHANNEL_DEFAULTS_UPDATE_MSG "updating channel settings to default$$$"
-#define OPENBCI_CMD_CHANNEL_DEFAULTS_MSG "050100$$$"
 #define OPENBCI_CMD_LOFF_SUCCESS_MSG "Success: Lead off set for "
+
+// Defaults
+#define OPENBCI_DEFAULT_SAMPLERATE ADS1X9X::SAMPLE_RATE_250
+#define OPENBCI_CHANNEL_DEFAULT_PD false
+#define OPENBCI_CHANNEL_DEFAULT_GAIN 12
+#define OPENBCI_CHANNEL_DEFAULT_INPUT_TYPE ADS1X9X::INPUT_NORMAL
+#define OPENBCI_CHANNEL_DEFAULT_BIAS true
+#define OPENBCI_CHANNEL_DEFAULT_SRB2 false
+#define OPENBCI_CHANNEL_DEFAULT_SRB1 false
+#define OPENBCI_CMD_CHANNEL_DEFAULTS_MSG "050100$$$"
 
 class OpenBCI {
 private:
@@ -182,16 +191,17 @@ private:
   byte cmdIdx = 0; // Current index in the command buffer
   uint8_t package_counter = 0; // Package counter
   uint8_t sample_counter = 0; // Sample counter
-  uint8_t downsampling_factor = 2; // Divides the data rate by this factor (e.g. 500 SPS and setting this to 2 = 250 messages per second)
-  ADS1X9X::SAMPLE_RATE current_sample_rate = ADS1X9X::SAMPLE_RATE_250;
+  uint8_t downsampling_factor = 1; // Divides the data rate by this factor (e.g. 500 SPS and setting this to 2 = 250 messages per second)
+  ADS1X9X::SAMPLE_RATE current_sample_rate = OPENBCI_DEFAULT_SAMPLERATE;
 
 public:
   OpenBCI(ADS1X9X* ads, HardwareSerial* serial);
-  void startUpMessage();
   void sendData(uint8_t* value);
   void readCMD();
+  void init();
 
 private:
+  void startUpMessage();
   void testSignals(uint8_t config2, bool shorted);
   static bool isSingleCharCmd(char cmd);
   void processCMD();

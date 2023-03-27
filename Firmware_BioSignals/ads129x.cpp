@@ -15,14 +15,9 @@ void ADS129x::all_defaults() {
   // LEAD OFF
   WREG(ADS1X9X_REG_LOFF, ADS1X9X_REG_ILEAD_OFF_6_nA | ADS1X9X_REG_FLEAD_OFF_AC_31_2HZ);
 
-  channel_defaults();
-}
-void ADS129x::channel_defaults() {
-  for (int i = 0; i < 8; i++)
-    regData[ADS1X9X_REG_CH1SET + i] = ADS1X9X_REG_CHnSET_MUX_ELECTRODE | ADS129x_REG_CHnSET_GAIN_12;
-  WREGS(ADS1X9X_REG_CH1SET, 8);
-  WREG(ADS1X9X_REG_RLD_SENSP, 0xFF);
-  WREG(ADS1X9X_REG_RLD_SENSN, 0xFF);
+  // Channel defaults (done by the OpenBCI interface)
+  // for (int i = 0; i < 8; i++)
+  //   set_channel_settings(i, false, 12, INPUT_NORMAL, true, false, false);
 }
 uint8_t ADS129x::set_sample_rate(SAMPLE_RATE sr) {
   if (regData[ADS1X9X_REG_CONFIG1] & ADS129x_REG_CONFIG1_HIGH_RES)  // For the ADS129x chips, the actual sample rate depends on the HR/LP bit
@@ -83,11 +78,8 @@ uint8_t ADS129x::set_sample_rate(SAMPLE_RATE sr) {
   return 1;
 }
 
-void ADS129x::set_channel_settings(uint8_t channelnumber, bool powerdown, uint8_t gain, INPUT_TYPE mux, bool bias, bool srb2, bool srb1) {
-  uint8_t registerValue = 0;
-
-  if (powerdown)
-    registerValue |= ADS1X9X_REG_CHnSET_PD;
+uint8_t ADS129x::set_channel_settings(uint8_t channelnumber, bool powerdown, uint8_t gain, INPUT_TYPE mux, bool bias, bool srb2, bool srb1) {
+  uint8_t registerValue = set_channel_settings(channelnumber, powerdown, gain, mux, bias, srb2, srb1);
 
   switch (gain) {
     case 1:
@@ -95,6 +87,9 @@ void ADS129x::set_channel_settings(uint8_t channelnumber, bool powerdown, uint8_
       break;
     case 2:
       registerValue |= ADS129x_REG_CHnSET_GAIN_2;
+      break;
+    case 3:
+      registerValue |= ADS129x_REG_CHnSET_GAIN_3;
       break;
     case 4:
       registerValue |= ADS129x_REG_CHnSET_GAIN_4;
@@ -111,39 +106,6 @@ void ADS129x::set_channel_settings(uint8_t channelnumber, bool powerdown, uint8_
     default:
       registerValue |= ADS129x_REG_CHnSET_GAIN_12;
       break;
-  }
-
-  switch (mux) {
-    default:
-    case INPUT_NORMAL:
-      registerValue |= ADS1X9X_REG_CHnSET_MUX_ELECTRODE;
-      break;
-    case INPUT_SHORTED:
-      registerValue |= ADS1X9X_REG_CHnSET_MUX_SHORTED;
-      break;
-    case INPUT_RLD:
-      registerValue |= ADS1X9X_REG_CHnSET_MUX_RLD;
-      break;
-    case INPUT_MVDD:
-      registerValue |= ADS1X9X_REG_CHnSET_MUX_MVDD;
-      break;
-    case INPUT_TEMP:
-      registerValue |= ADS1X9X_REG_CHnSET_MUX_TEMP;
-      break;
-    case INPUT_TEST:
-      registerValue |= ADS1X9X_REG_CHnSET_MUX_TEST;
-      break;
-    case INPUT_RLD_DRP:
-      registerValue |= ADS1X9X_REG_CHnSET_MUX_RLD_DRP;
-      break;
-    case INPUT_RLD_DRN:
-      registerValue |= ADS1X9X_REG_CHnSET_MUX_RLD_DRN;
-      break;
-  }
-
-  if (bias) {
-    WREG(ADS1X9X_REG_RLD_SENSP, this->regData[ADS1X9X_REG_RLD_SENSP] & ~(bias << channelnumber) | (bias << channelnumber));
-    WREG(ADS1X9X_REG_RLD_SENSN, this->regData[ADS1X9X_REG_RLD_SENSN] & ~(bias << channelnumber) | (bias << channelnumber));
   }
 
   this->WREG(ADS1X9X_REG_CH1SET + channelnumber, registerValue);
