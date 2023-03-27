@@ -176,105 +176,117 @@ void OpenBCI::processCMD() {
       break;
 
     case OPENBCI_CHANNEL_IMPEDANCE_SET:
-    {
-      uint8_t channel = getChannelFromCommand(cmdBuffer[1]);
-      uint8_t sensP = (cmdBuffer[2] == OPENBCI_CHANNEL_IMPEDANCE_TEST_SIGNAL_APPLIED) << channel;
-      uint8_t sensN = (cmdBuffer[3] == OPENBCI_CHANNEL_IMPEDANCE_TEST_SIGNAL_APPLIED) << channel;
-
-      ads->WREG(ADS1X9X_REG_LOFF_SENSP, ads->regData[ADS1X9X_REG_LOFF_SENSP] & ~sensP | sensP);
-      ads->WREG(ADS1X9X_REG_LOFF_SENSN, ads->regData[ADS1X9X_REG_LOFF_SENSP] & ~sensN | sensN);
-
-      if (!ads->isContReading()) {
-        serial->print(OPENBCI_CMD_LOFF_SUCCESS_MSG);
-        serial->print(channel+1);
-        serial->println(OPENBCI_EOT);
-      }
-    }
-    break;
+      processCMDImpedance();
+      break;
 
     case OPENBCI_CHANNEL_CMD_SET: 
-      {
-        uint8_t gain = OPENBCI_CHANNEL_DEFAULT_GAIN;
-        switch (cmdBuffer[3]) {
-          case OPENBCI_CHANNEL_CMD_GAIN_1: gain = 1; break;
-          case OPENBCI_CHANNEL_CMD_GAIN_2: gain = 2; break;
-          case OPENBCI_CHANNEL_CMD_GAIN_4: gain = 4; break;
-          case OPENBCI_CHANNEL_CMD_GAIN_6: gain = 6; break;
-          case OPENBCI_CHANNEL_CMD_GAIN_8: gain = 8; break;
-          case OPENBCI_CHANNEL_CMD_GAIN_12: gain = 12; break;
-          case OPENBCI_CHANNEL_CMD_GAIN_24: gain = 24; break;
-        }
-        ADS1X9X::INPUT_TYPE mux = OPENBCI_CHANNEL_DEFAULT_INPUT_TYPE;
-        switch (cmdBuffer[4]) {
-          case OPENBCI_CHANNEL_CMD_ADC_Normal: mux = ADS1X9X::INPUT_NORMAL; break;
-          case OPENBCI_CHANNEL_CMD_ADC_Shorted: mux = ADS1X9X::INPUT_SHORTED; break;
-          case OPENBCI_CHANNEL_CMD_ADC_BiasMethod: mux = ADS1X9X::INPUT_RLD; break;
-          case OPENBCI_CHANNEL_CMD_ADC_MVDD: mux = ADS1X9X::INPUT_MVDD; break;
-          case OPENBCI_CHANNEL_CMD_ADC_Temp: mux = ADS1X9X::INPUT_TEMP; break;
-          case OPENBCI_CHANNEL_CMD_ADC_TestSig: mux = ADS1X9X::INPUT_TEST; break;
-          case OPENBCI_CHANNEL_CMD_ADC_BiasDRP: mux = ADS1X9X::INPUT_RLD_DRP; break;
-          case OPENBCI_CHANNEL_CMD_ADC_BiasDRN: mux = ADS1X9X::INPUT_RLD_DRN; break;
-        }
-        ads->set_channel_settings(getChannelFromCommand(cmdBuffer[1]), 
-                                  cmdBuffer[2] == OPENBCI_CHANNEL_CMD_POWER_OFF, 
-                                  gain, 
-                                  mux,
-                                  cmdBuffer[5] == OPENBCI_CHANNEL_CMD_BIAS_INCLUDE,
-                                  cmdBuffer[6] == OPENBCI_CHANNEL_CMD_SRB2_CONNECT,
-                                  cmdBuffer[7] == OPENBCI_CHANNEL_CMD_SRB1_CONNECT);
-      }
+      processCMDChannelSet();
       break;
+
     case OPENBCI_SAMPLE_RATE_SET:
-      if(cmdBuffer[1] == OPENBCI_SAMPLE_RATE_SET){
-        if(!ads->isContReading()){
-          serial->print(OPENBCI_CMD_GET_SAMPLERATE_MSG_0);
-          serial->print(getSampleRate());
-          serial->print(OPENBCI_CMD_SET_SAMPLERATE_MSG_1);          
-        }
-      }
-      else{
-        ADS1X9X::SAMPLE_RATE sr = OPENBCI_DEFAULT_SAMPLERATE;
-        switch (cmdBuffer[1]) {
-          case '0': sr = ADS1X9X::SAMPLE_RATE_16000; break;
-          case '1': sr = ADS1X9X::SAMPLE_RATE_8000; break;
-          case '2': sr = ADS1X9X::SAMPLE_RATE_4000; break;
-          case '3': sr = ADS1X9X::SAMPLE_RATE_2000; break;
-          case '4': sr = ADS1X9X::SAMPLE_RATE_1000; break;
-          case '5': sr = ADS1X9X::SAMPLE_RATE_500; break;
-          case '6': sr = ADS1X9X::SAMPLE_RATE_250; break;
-          case '7': sr = ADS1X9X::SAMPLE_RATE_125; break;
-        }
-        current_sample_rate = sr;
-        this->downsampling_factor = ads->set_sample_rate(sr);
-        if(!ads->isContReading()){
-          serial->print(OPENBCI_CMD_SET_SAMPLERATE_MSG_0);
-          serial->print(getSampleRate());
-          serial->print(OPENBCI_CMD_SET_SAMPLERATE_MSG_1);
-        }
-      }
+      processCMDSampleRate();
       break;
     case OPENBCI_MISC_QUERY_REGISTER_SETTINGS:
-      if(!ads->isContReading()) {
-        serial->println("Board ADS Registers");
-        for(int i = 0; i < 24; i++){
-          serial->print(ads->getRegisterName(i));
-          serial->print(", ");
-          printHex(i);  
-          serial->print(", ");
-          printHex(ads->regData[i]);
-          serial->print(", ");
-          for (int j = 0; j < 8; j++) {
-            serial->print((ads->regData[i] >> (7-j)) & 0x01);
-            if (j != 7)
-              serial->print(", ");
-          }
-          serial->println();
-        }
-        serial->println(OPENBCI_EOT);        
-      }
+      processCMDQuery();
       break;
   }
 }
+void OpenBCI::processCMDChannelSet() {
+  uint8_t gain = OPENBCI_CHANNEL_DEFAULT_GAIN;
+  switch (cmdBuffer[3]) {
+    case OPENBCI_CHANNEL_CMD_GAIN_1: gain = 1; break;
+    case OPENBCI_CHANNEL_CMD_GAIN_2: gain = 2; break;
+    case OPENBCI_CHANNEL_CMD_GAIN_4: gain = 4; break;
+    case OPENBCI_CHANNEL_CMD_GAIN_6: gain = 6; break;
+    case OPENBCI_CHANNEL_CMD_GAIN_8: gain = 8; break;
+    case OPENBCI_CHANNEL_CMD_GAIN_12: gain = 12; break;
+    case OPENBCI_CHANNEL_CMD_GAIN_24: gain = 24; break;
+  }
+
+  ADS1X9X::INPUT_TYPE mux = OPENBCI_CHANNEL_DEFAULT_INPUT_TYPE;
+  switch (cmdBuffer[4]) {
+    case OPENBCI_CHANNEL_CMD_ADC_Normal: mux = ADS1X9X::INPUT_NORMAL; break;
+    case OPENBCI_CHANNEL_CMD_ADC_Shorted: mux = ADS1X9X::INPUT_SHORTED; break;
+    case OPENBCI_CHANNEL_CMD_ADC_BiasMethod: mux = ADS1X9X::INPUT_RLD; break;
+    case OPENBCI_CHANNEL_CMD_ADC_MVDD: mux = ADS1X9X::INPUT_MVDD; break;
+    case OPENBCI_CHANNEL_CMD_ADC_Temp: mux = ADS1X9X::INPUT_TEMP; break;
+    case OPENBCI_CHANNEL_CMD_ADC_TestSig: mux = ADS1X9X::INPUT_TEST; break;
+    case OPENBCI_CHANNEL_CMD_ADC_BiasDRP: mux = ADS1X9X::INPUT_RLD_DRP; break;
+    case OPENBCI_CHANNEL_CMD_ADC_BiasDRN: mux = ADS1X9X::INPUT_RLD_DRN; break;
+  }
+
+  ads->set_channel_settings(getChannelFromCommand(cmdBuffer[1]), 
+                            cmdBuffer[2] == OPENBCI_CHANNEL_CMD_POWER_OFF, 
+                            gain, 
+                            mux,
+                            cmdBuffer[5] == OPENBCI_CHANNEL_CMD_BIAS_INCLUDE,
+                            cmdBuffer[6] == OPENBCI_CHANNEL_CMD_SRB2_CONNECT,
+                            cmdBuffer[7] == OPENBCI_CHANNEL_CMD_SRB1_CONNECT);
+}
+void OpenBCI::processCMDSampleRate() {
+  if(cmdBuffer[1] == OPENBCI_SAMPLE_RATE_SET){
+    if(!ads->isContReading()){
+      serial->print(OPENBCI_CMD_GET_SAMPLERATE_MSG_0);
+      serial->print(getSampleRate());
+      serial->print(OPENBCI_CMD_SET_SAMPLERATE_MSG_1);          
+    }
+  }
+  else{
+    ADS1X9X::SAMPLE_RATE sr = OPENBCI_DEFAULT_SAMPLERATE;
+    switch (cmdBuffer[1]) {
+      case '0': sr = ADS1X9X::SAMPLE_RATE_16000; break;
+      case '1': sr = ADS1X9X::SAMPLE_RATE_8000; break;
+      case '2': sr = ADS1X9X::SAMPLE_RATE_4000; break;
+      case '3': sr = ADS1X9X::SAMPLE_RATE_2000; break;
+      case '4': sr = ADS1X9X::SAMPLE_RATE_1000; break;
+      case '5': sr = ADS1X9X::SAMPLE_RATE_500; break;
+      case '6': sr = ADS1X9X::SAMPLE_RATE_250; break;
+      case '7': sr = ADS1X9X::SAMPLE_RATE_125; break;
+    }
+    current_sample_rate = sr;
+    this->downsampling_factor = ads->set_sample_rate(sr);
+    if(!ads->isContReading()){
+      serial->print(OPENBCI_CMD_SET_SAMPLERATE_MSG_0);
+      serial->print(getSampleRate());
+      serial->print(OPENBCI_CMD_SET_SAMPLERATE_MSG_1);
+    }
+  }
+}
+void OpenBCI::processCMDQuery() {
+  if(!ads->isContReading()) {
+    serial->println("Board ADS Registers");
+    for(int i = 0; i < 24; i++){
+      serial->print(ads->getRegisterName(i));
+      serial->print(", ");
+      printHex(i);  
+      serial->print(", ");
+      printHex(ads->regData[i]);
+      serial->print(", ");
+      for (int j = 0; j < 8; j++) {
+        serial->print((ads->regData[i] >> (7-j)) & 0x01);
+        if (j != 7)
+          serial->print(", ");
+      }
+      serial->println();
+    }
+    serial->println(OPENBCI_EOT);        
+  }
+}
+void OpenBCI::processCMDImpedance() {
+  uint8_t channel = getChannelFromCommand(cmdBuffer[1]);
+  uint8_t sensP = (cmdBuffer[2] == OPENBCI_CHANNEL_IMPEDANCE_TEST_SIGNAL_APPLIED) << channel;
+  uint8_t sensN = (cmdBuffer[3] == OPENBCI_CHANNEL_IMPEDANCE_TEST_SIGNAL_APPLIED) << channel;
+
+  ads->WREG(ADS1X9X_REG_LOFF_SENSP, ads->regData[ADS1X9X_REG_LOFF_SENSP] & ~sensP | sensP);
+  ads->WREG(ADS1X9X_REG_LOFF_SENSN, ads->regData[ADS1X9X_REG_LOFF_SENSP] & ~sensN | sensN);
+
+  if (!ads->isContReading()) {
+    serial->print(OPENBCI_CMD_LOFF_SUCCESS_MSG);
+    serial->print(channel+1);
+    serial->println(OPENBCI_EOT);
+  }
+}
+
 void OpenBCI::printHex(byte _data) {
   if (_data < 0x10)
     serial->print("0");

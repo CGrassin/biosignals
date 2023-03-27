@@ -206,9 +206,10 @@ private:
   void testSignals(uint8_t config2, bool shorted);
   static bool isSingleCharCmd(char cmd);
   void processCMD();
-  // void processCMDChannel();
-  // void processCMDQuery();
-  // void processCMDSampleRate();
+  void processCMDChannelSet();
+  void processCMDQuery();
+  void processCMDSampleRate();
+  void processCMDImpedance();
   void printHex(byte _data);
   uint8_t getChannelFromCommand(char asciiChar);
   const char * getSampleRate();
