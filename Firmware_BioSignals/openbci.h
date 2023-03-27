@@ -178,14 +178,15 @@
 #define OPENBCI_CHANNEL_DEFAULT_GAIN 12
 #define OPENBCI_CHANNEL_DEFAULT_INPUT_TYPE ADS1X9X::INPUT_NORMAL
 #define OPENBCI_CHANNEL_DEFAULT_BIAS true
-#define OPENBCI_CHANNEL_DEFAULT_SRB2 false
+#define OPENBCI_CHANNEL_DEFAULT_SRB2 true
 #define OPENBCI_CHANNEL_DEFAULT_SRB1 false
-#define OPENBCI_CMD_CHANNEL_DEFAULTS_MSG "050100$$$"
+#define OPENBCI_CMD_CHANNEL_DEFAULTS_MSG "050110$$$"
 
 class OpenBCI {
 private:
   ADS1X9X* ads;
   HardwareSerial* serial;
+  // SdFat *SD;
   unsigned long multiCharCmdTimeout = 0;  // the timeout in millis of the current multi char command
   char cmdBuffer[OPENBCI_BUFFER_LENGTH];
   byte cmdIdx = 0; // Current index in the command buffer
@@ -206,6 +207,7 @@ private:
   static bool isSingleCharCmd(char cmd);
   void processCMD();
   // void processCMDChannel();
+  // void processCMDQuery();
   // void processCMDSampleRate();
   void printHex(byte _data);
   uint8_t getChannelFromCommand(char asciiChar);

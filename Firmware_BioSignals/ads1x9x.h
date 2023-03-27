@@ -112,7 +112,7 @@ public:
   uint8_t status[3]; // contains sampled last data
   uint8_t data[3 * 8]; // contains sampled last data
 
-  typedef enum INPUT_TYPE{
+  enum INPUT_TYPE{
     INPUT_NORMAL,
     INPUT_SHORTED,
     INPUT_RLD,
@@ -123,7 +123,7 @@ public:
     INPUT_RLD_DRN
   };
 
-  typedef enum SAMPLE_RATE {
+  enum SAMPLE_RATE {
     SAMPLE_RATE_16000,
     SAMPLE_RATE_8000,
     SAMPLE_RATE_4000,

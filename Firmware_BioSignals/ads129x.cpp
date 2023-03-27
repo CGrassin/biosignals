@@ -79,7 +79,7 @@ uint8_t ADS129x::set_sample_rate(SAMPLE_RATE sr) {
 }
 
 uint8_t ADS129x::set_channel_settings(uint8_t channelnumber, bool powerdown, uint8_t gain, INPUT_TYPE mux, bool bias, bool srb2, bool srb1) {
-  uint8_t registerValue = set_channel_settings(channelnumber, powerdown, gain, mux, bias, srb2, srb1);
+  uint8_t registerValue = ADS1X9X::set_channel_settings(channelnumber, powerdown, gain, mux, bias, srb2, srb1);
 
   switch (gain) {
     case 1:
@@ -101,14 +101,13 @@ uint8_t ADS129x::set_channel_settings(uint8_t channelnumber, bool powerdown, uin
       registerValue |= ADS129x_REG_CHnSET_GAIN_8;
       break;
     case 12:
-      registerValue |= ADS129x_REG_CHnSET_GAIN_12;
-      break;
     default:
       registerValue |= ADS129x_REG_CHnSET_GAIN_12;
       break;
   }
 
   this->WREG(ADS1X9X_REG_CH1SET + channelnumber, registerValue);
+  return registerValue;
 }
 
 const char * ADS129x::getRegisterName(uint8_t _address){

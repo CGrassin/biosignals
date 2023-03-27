@@ -13,7 +13,7 @@ void OpenBCI::init(){
   this->downsampling_factor = ads->set_sample_rate(OPENBCI_DEFAULT_SAMPLERATE);
 
   // Default channel settings
-  for(int i=0;i<8;i++)
+  for(int i = 0; i < 8; i++)
     ads->set_channel_settings(i, OPENBCI_CHANNEL_DEFAULT_PD, OPENBCI_CHANNEL_DEFAULT_GAIN, OPENBCI_CHANNEL_DEFAULT_INPUT_TYPE, OPENBCI_CHANNEL_DEFAULT_BIAS, OPENBCI_CHANNEL_DEFAULT_SRB2, OPENBCI_CHANNEL_DEFAULT_SRB1);
 
   startUpMessage();
