@@ -196,10 +196,19 @@ private:
   ADS1X9X::SAMPLE_RATE current_sample_rate = OPENBCI_DEFAULT_SAMPLERATE;
 
 public:
+  /** Constructor for an OpenBCI interface object.
+   * @param ads An uninitialized ADS object.
+   * @param serial The input/output serial interface.
+   */
   OpenBCI(ADS1X9X* ads, HardwareSerial* serial);
-  void sendData(uint8_t* value);
-  void readCMD();
+  /** Inits the ADS and OpenBCI interface objects. */
   void init();
+  /** Sends a 33 bytes OpenBCI packet.
+   * @param value A 24 byte register to send.
+   */
+  void sendData(uint8_t* value);
+  /** Reads and processes command (if there is any). */
+  void readCMD();
 
 private:
   void startUpMessage();

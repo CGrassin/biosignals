@@ -92,8 +92,7 @@ void setup() {
 }
 
 void loop() {
-  if(!digitalRead(PIN_FE_DRDY)){
-    ads.read_data();
+  if(ads.read_data()){
     openbci.sendData(ads.data);
   }
   openbci.readCMD();

@@ -132,13 +132,17 @@ void ADS1X9X::switch_channel(uint8_t channelnumber, bool powerdown) {
 bool ADS1X9X::isContReading() {
   return contReading;
 }
-void ADS1X9X::read_data() {
-  digitalWrite(cs_pin, LOW);
-  for (int i = 0; i < 3; i++) 
-    this->status[i] = spi->transfer(0);
-  for (int i = 0; i < 8 * 3; i++)
-    this->data[i] = spi->transfer(0);
-  digitalWrite(cs_pin, HIGH);
+bool ADS1X9X::read_data() {
+  if(!digitalRead(drdy_pin)){
+    digitalWrite(cs_pin, LOW);
+    for (int i = 0; i < 3; i++) 
+      this->status[i] = spi->transfer(0);
+    for (int i = 0; i < 8 * 3; i++)
+      this->data[i] = spi->transfer(0);
+    digitalWrite(cs_pin, HIGH);
+    return true;
+  }
+  return false;
 }
 const char * ADS1X9X::getRegisterName(uint8_t _address){
   switch (_address) {

@@ -104,14 +104,16 @@
 // ---------------------
 
 /**
-Abstract interface to support all ADS ICs.
-*/
+ * Abstract interface to support all ADSxxxx ICs.
+ * Implements the common functionality.
+ */
 class ADS1X9X {
 public:
-  uint8_t regData[24];  // array is used to mirror register data
-  uint8_t status[3]; // contains sampled last data
-  uint8_t data[3 * 8]; // contains sampled last data
-
+  uint8_t regData[24]; /** Array to mirror the ADSxxxx register data. */
+  uint8_t status[3]; /** Array containing the status registers of the last data read (3 bytes). */
+  uint8_t data[3 * 8]; /** Array containing the data registers of the last data read (3*8 bytes). */
+  
+  /** Enum containing all possible input states for each input. */
   enum INPUT_TYPE{
     INPUT_NORMAL,
     INPUT_SHORTED,
@@ -122,8 +124,10 @@ public:
     INPUT_RLD_DRP,
     INPUT_RLD_DRN
   };
-
+  
+  /** Enum containing all available sample rates. */
   enum SAMPLE_RATE {
+    SAMPLE_RATE_32000,
     SAMPLE_RATE_16000,
     SAMPLE_RATE_8000,
     SAMPLE_RATE_4000,
@@ -133,35 +137,101 @@ public:
     SAMPLE_RATE_250,
     SAMPLE_RATE_125
   };
-
+  
+  /** Constructor of an ADSxxxx object.
+   * @param cs_pin_set The slave select pin.
+   * @param drdy_pin_set The data ready pin.
+   * @param reset_pin_set The hardware reset pin.
+   * @param spi_set The SPI bus object to access the ADS.
+   */
   ADS1X9X(int cs_pin_set, int drdy_pin_set, int reset_pin_set, SPIClass* spi_set);
+
+  /** Function to init the ADS object (set the pins, SPI bus, does the reset procedure and set default registers).
+   * Shall be called before using the object.
+   */
   void init();
 
   // System commands)
+  /** Sends the "Stop Read Data Continuously mode" command. */
   void SDATAC();
+  /** Sends the "Enable Read Data Continuously mode" command. */
   void RDATAC();
+  /** Sends the "Wakeup" command. */
   void WAKEUP();
+  /** Sends the "Standby" command. */
   void STANDBY();
+  /** Sends the "Soft Reset" command. */
   void RESET();
+  /** Sends the "Start conversion" command. */
   void START();
+  /** Sends the "Stop conversion" command. */
   void STOP();
+  /** Sends a "read register" command. 
+   * @param _address The address to read.
+   * @return The value of the register. It is also updated in regData.
+   */
   uint8_t RREG(uint8_t _address);
+  /** Read multiple registers command. The registers are updated in regData.
+   * @param _address The start address to read.
+   * @param _numRegisters The number of registers to read.
+   */
   void RREGS(uint8_t _address, uint8_t _numRegisters);
+  /** Sends a "write register" command. The register is updated in regData.
+   * @param _address The address to write.
+   * @param _numRegisters The value to write.
+   */
   void WREG(uint8_t _address,  uint8_t _value);
+  /** Write multiple registers from the content of regData.
+   * @param _address The start address to write.
+   * @param _numRegisters The number of registers to write.
+   */
   void WREGS(uint8_t _address, uint8_t _numRegisters);
   
   // Interface
+  /** Starts continuously streaming data from the ADS. */
   void start_stream();
+  /** Stops continuously streaming data from the ADS. */
   void stop_stream();
+  /** Does the hard-reset sequence. */
   void hard_reset();
+  /** Does the soft-reset sequence. */
   void soft_reset();
+  /** Switches a channel on or off.
+   * @param channelnumber The number of the channel (0 to 7).
+   * @param powerdown True to power the channel down.
+   */
   void switch_channel(uint8_t channelnumber, bool powerdown);
+  /** Checks if the ADS is streaming data.
+   * @return True if the device is currently continuously reading.
+   */
   bool isContReading();
-  virtual void read_data();
+  /** Reads data from the ADS if any is available.
+   * If data was available, updates the status and data registers.
+   * @return True if data was read.
+   */
+  virtual bool read_data();
+  /** Gets a string with the human-readable name of a register.
+   * @param _address Address of the register.
+   * @return String with the name of the register.
+   */
   virtual const char * getRegisterName(uint8_t _address);
+  /** Sets the parameters for a channel.
+   * @param channelnumber The number of the channel (0 to 7).
+   * @param powerdown True to power the channel down.
+   * @param gain The PGA gain.
+   * @param mux The state of the input mux.
+   * @param bias Whether the channel shall be included in the bias/RLD.
+   * @param SRB2 State of the SRB2 switch.
+   * @param SRB1 State of the SRB1 switch.
+   * @return The value of the register (for internal use).
+   */
   virtual uint8_t set_channel_settings(uint8_t channelnumber, bool powerdown, uint8_t gain, INPUT_TYPE mux, bool bias, bool srb2, bool srb1);
 
   // Abstract functions (IC-specific)
+  /** Sets the sample rate for all the channels.
+   * @param sr The requested sample rate.
+   * @return The down-sampling factor required to reach the desired sample rate (usually 0 except edge cases).
+   */
   virtual uint8_t set_sample_rate(SAMPLE_RATE sr) = 0; // Return the downsampling rate required to reach the desired SPS
 
 protected:
@@ -171,7 +241,7 @@ protected:
   SPIClass* spi;
   bool contReading = false;
 
-  // Abstract function (IC-specific)
+  /** Sets all config registers to their default value. */
   virtual void all_defaults() = 0;
 };
 

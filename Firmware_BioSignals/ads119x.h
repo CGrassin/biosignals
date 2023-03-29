@@ -33,43 +33,46 @@ class ADS119x: public ADS129X{
 public:
   ADS119x(int cs_pin_set, int drdy_pin_set, int reset_pin_set, SPIClass* spi_set); //TODO
   void all_defaults(); //TODO
-  virtual void read_data() {
-    digitalWrite(cs_pin, LOW);
-    for (int i = 0; i < 3; i++) 
-      this->status[i] = spi->transfer(0);
-    for (int i = 0; i < 8; i++){
-      this->data[i*3] = spi->transfer(0);
-      this->data[i*3 + 1] = spi->transfer(0);
-      this->data[i*3 + 2] = 0x00; // 16 bits
+  virtual bool read_data() {
+    if(!digitalRead(drdy_pin)){
+      digitalWrite(cs_pin, LOW);
+      for (int i = 0; i < 3; i++) 
+        this->status[i] = spi->transfer(0);
+      for (int i = 0; i < 8; i++){
+        this->data[i*3] = spi->transfer(0);
+        this->data[i*3 + 1] = spi->transfer(0);
+        this->data[i*3 + 2] = 0x00; // 16 bits
+      }
+      digitalWrite(cs_pin, HIGH);
+      return true;
     }
-    digitalWrite(cs_pin, HIGH);
+    return false;
   }
   uint8_t set_sample_rate(SAMPLE_RATE sr){
     switch (sr) {
+      case SAMPLE_RATE_32000: // This chip can't do 32kHz, set max possible sample rate instead
       case SAMPLE_RATE_16000: // This chip can't do 16kHz, set max possible sample rate instead
-        this->WREG(ADS1X9X_REG_CONFIG1, this->regData[ADS1X9X_REG_CONFIG1] & ~ADS1X9X_REG_CONFIG1_RATE_MASK | ADS119x_REG_CONFIG1_8KSPS);
-        break;
       case SAMPLE_RATE_8000:
-        this->WREG(ADS1X9X_REG_CONFIG1, this->regData[ADS1X9X_REG_CONFIG1] & ~ADS1X9X_REG_CONFIG1_RATE_MASK | ADS119x_REG_CONFIG1_8KSPS);
+        this->WREG(ADS1X9X_REG_CONFIG1, (this->regData[ADS1X9X_REG_CONFIG1] & ~ADS1X9X_REG_CONFIG1_RATE_MASK) | ADS119x_REG_CONFIG1_8KSPS);
         break;
       case SAMPLE_RATE_4000:
-        this->WREG(ADS1X9X_REG_CONFIG1, this->regData[ADS1X9X_REG_CONFIG1] & ~ADS1X9X_REG_CONFIG1_RATE_MASK | ADS119x_REG_CONFIG1_4KSPS);
+        this->WREG(ADS1X9X_REG_CONFIG1, (this->regData[ADS1X9X_REG_CONFIG1] & ~ADS1X9X_REG_CONFIG1_RATE_MASK) | ADS119x_REG_CONFIG1_4KSPS);
         break;
       case SAMPLE_RATE_2000:
-        this->WREG(ADS1X9X_REG_CONFIG1, this->regData[ADS1X9X_REG_CONFIG1] & ~ADS1X9X_REG_CONFIG1_RATE_MASK | ADS119x_REG_CONFIG1_2KSPS);
+        this->WREG(ADS1X9X_REG_CONFIG1, (this->regData[ADS1X9X_REG_CONFIG1] & ~ADS1X9X_REG_CONFIG1_RATE_MASK) | ADS119x_REG_CONFIG1_2KSPS);
         break;
       case SAMPLE_RATE_1000:
-        this->WREG(ADS1X9X_REG_CONFIG1, this->regData[ADS1X9X_REG_CONFIG1] & ~ADS1X9X_REG_CONFIG1_RATE_MASK | ADS119x_REG_CONFIG1_1KSPS);
+        this->WREG(ADS1X9X_REG_CONFIG1, (this->regData[ADS1X9X_REG_CONFIG1] & ~ADS1X9X_REG_CONFIG1_RATE_MASK) | ADS119x_REG_CONFIG1_1KSPS);
         break;
       case SAMPLE_RATE_500:
-        this->WREG(ADS1X9X_REG_CONFIG1, this->regData[ADS1X9X_REG_CONFIG1] & ~ADS1X9X_REG_CONFIG1_RATE_MASK | ADS119x_REG_CONFIG1_500SPS);
+        this->WREG(ADS1X9X_REG_CONFIG1, (this->regData[ADS1X9X_REG_CONFIG1] & ~ADS1X9X_REG_CONFIG1_RATE_MASK) | ADS119x_REG_CONFIG1_500SPS);
         break;
       case SAMPLE_RATE_250:
-        this->WREG(ADS1X9X_REG_CONFIG1, this->regData[ADS1X9X_REG_CONFIG1] & ~ADS1X9X_REG_CONFIG1_RATE_MASK | ADS119x_REG_CONFIG1_250SPS);
+        this->WREG(ADS1X9X_REG_CONFIG1, (this->regData[ADS1X9X_REG_CONFIG1] & ~ADS1X9X_REG_CONFIG1_RATE_MASK) | ADS119x_REG_CONFIG1_250SPS);
         break;
       case SAMPLE_RATE_125:
       default:
-        this->WREG(ADS1X9X_REG_CONFIG1, this->regData[ADS1X9X_REG_CONFIG1] & ~ADS1X9X_REG_CONFIG1_RATE_MASK | ADS119x_REG_CONFIG1_125SPS);
+        this->WREG(ADS1X9X_REG_CONFIG1, (this->regData[ADS1X9X_REG_CONFIG1] & ~ADS1X9X_REG_CONFIG1_RATE_MASK) | ADS119x_REG_CONFIG1_125SPS);
         break;
     }
     return 1;
