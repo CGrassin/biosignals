@@ -33,9 +33,6 @@
 
 // TODO
 // SD CARD
-// Handle defaults
-// Decimation
-// Missing commands
 
 // CONFIG
 //#define SD_CARD_ENABLE

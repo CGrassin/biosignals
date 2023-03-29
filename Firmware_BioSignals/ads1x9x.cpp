@@ -208,8 +208,11 @@ uint8_t ADS1X9X::set_channel_settings(uint8_t channelnumber, bool powerdown, uin
   }
 
   if (bias) {
-    WREG(ADS1X9X_REG_RLD_SENSP, this->regData[ADS1X9X_REG_RLD_SENSP] & ~(bias << channelnumber) | (bias << channelnumber));
-    WREG(ADS1X9X_REG_RLD_SENSN, this->regData[ADS1X9X_REG_RLD_SENSN] & ~(bias << channelnumber) | (bias << channelnumber));
+    WREG(ADS1X9X_REG_RLD_SENSP, this->regData[ADS1X9X_REG_RLD_SENSP] | (0x01 << channelnumber));
+    WREG(ADS1X9X_REG_RLD_SENSN, this->regData[ADS1X9X_REG_RLD_SENSN] | (0x01 << channelnumber));
+  } else {
+    WREG(ADS1X9X_REG_RLD_SENSP, this->regData[ADS1X9X_REG_RLD_SENSP] & ~(0x01 << channelnumber));
+    WREG(ADS1X9X_REG_RLD_SENSN, this->regData[ADS1X9X_REG_RLD_SENSN] & ~(0x01 << channelnumber));
   }
 
   return registerValue;
