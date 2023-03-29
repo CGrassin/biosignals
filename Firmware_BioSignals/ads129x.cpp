@@ -4,8 +4,6 @@ ADS129x::ADS129x(int cs_pin_set, int drdy_pin_set, int reset_pin_set, SPIClass* 
   : ADS1X9X(cs_pin_set, drdy_pin_set, reset_pin_set, spi_set) {}
 
 void ADS129x::all_defaults() {
-  RREGS(0, 24);  // Fetch registers
-
   // CONFIG1-3
   regData[ADS1X9X_REG_CONFIG1] = ADS129x_REG_CONFIG1_HIGH_RES | ADS129x_REG_CONFIG1_500SPS;
   regData[ADS1X9X_REG_CONFIG2] = ADS1X9X_REG_CONFIG2_INT_TEST;
@@ -14,10 +12,6 @@ void ADS129x::all_defaults() {
 
   // LEAD OFF
   WREG(ADS1X9X_REG_LOFF, ADS1X9X_REG_ILEAD_OFF_6_nA | ADS1X9X_REG_FLEAD_OFF_AC_31_2HZ);
-
-  // Channel defaults (done by the OpenBCI interface)
-  // for (int i = 0; i < 8; i++)
-  //   set_channel_settings(i, false, 12, INPUT_NORMAL, true, false, false);
 }
 uint8_t ADS129x::set_sample_rate(SAMPLE_RATE sr) {
   // For the ADS129x chips, the actual sample rate depends on the HR/LP bit

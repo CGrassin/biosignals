@@ -20,6 +20,8 @@ void ADS1X9X::init() {
   // RESET THE CHIP
   hard_reset();
   stop_stream();
+  
+  RREGS(0, 24);  // Fetch registers
   all_defaults();
 }
 // System commands
