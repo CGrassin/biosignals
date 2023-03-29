@@ -17,6 +17,7 @@
 // ---------------------
 // CONFIG BIT MASKS
 // CONFIG 1
+#define ADS129x_REG_CONFIG1_RESERVED 0b00000000  /* Reserved bits to set to 1 */
 #define ADS129x_REG_CONFIG1_HIGH_RES 0b10000000       /* HR mode */
 #define ADS129x_REG_CONFIG1_32KSPS 0b00000000         /* HR Mode: 32 kSPS, LP Mode: 16 kSPS */
 #define ADS129x_REG_CONFIG1_16KSPS 0b00000001         /* HR Mode: 16 kSPS, LP Mode:  8 kSPS */
@@ -25,6 +26,8 @@
 #define ADS129x_REG_CONFIG1_2KSPS 0b00000100          /* HR Mode:  2 kSPS, LP Mode:  1 kSPS */
 #define ADS129x_REG_CONFIG1_1KSPS 0b00000101          /* HR Mode:  1 kSPS, LP Mode: 500 SPS */
 #define ADS129x_REG_CONFIG1_500SPS 0b00000110         /* HR Mode: 500 SPS, LP Mode: 250 SPS */
+// CONFIG 2
+#define ADS129x_REG_CONFIG2_RESERVED 0b00000000  /* Reserved bits to set to 1 */
 // CONFIG 3
 #define ADS129x_REG_CONFIG3_RESERVED 0b01000000  /* Reserved bits to set to 1 */
 // Individual Channel Settings
@@ -40,7 +43,7 @@
 class ADS129x: public ADS1X9X{
 public:
   ADS129x(int cs_pin_set, int drdy_pin_set, int reset_pin_set, SPIClass* spi_set);
-  void all_defaults();
+  virtual void all_defaults();
   virtual uint8_t set_sample_rate(SAMPLE_RATE sr);
   virtual uint8_t set_channel_settings(uint8_t channelnumber, bool powerdown, uint8_t gain, INPUT_TYPE mux, bool bias, bool srb2, bool srb1);
   virtual const char * getRegisterName(uint8_t _address);
