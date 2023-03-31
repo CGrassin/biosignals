@@ -7,6 +7,7 @@
 #define __OpenBCI_INCLUDE
 
 #include "ads1x9x.h"
+#include "FIRFilter.h"
 #include <Arduino.h>
 
 #define PCKT_START 0xA0  // prefix for data packet error checking

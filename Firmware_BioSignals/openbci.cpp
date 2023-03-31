@@ -277,8 +277,8 @@ void OpenBCI::processCMDImpedance() {
   uint8_t sensP = (cmdBuffer[2] == OPENBCI_CHANNEL_IMPEDANCE_TEST_SIGNAL_APPLIED) << channel;
   uint8_t sensN = (cmdBuffer[3] == OPENBCI_CHANNEL_IMPEDANCE_TEST_SIGNAL_APPLIED) << channel;
 
-  ads->WREG(ADS1X9X_REG_LOFF_SENSP, ads->regData[ADS1X9X_REG_LOFF_SENSP] & ~sensP | sensP);
-  ads->WREG(ADS1X9X_REG_LOFF_SENSN, ads->regData[ADS1X9X_REG_LOFF_SENSP] & ~sensN | sensN);
+  ads->WREG(ADS1X9X_REG_LOFF_SENSP, (ads->regData[ADS1X9X_REG_LOFF_SENSP] & ~sensP) | sensP);
+  ads->WREG(ADS1X9X_REG_LOFF_SENSN, (ads->regData[ADS1X9X_REG_LOFF_SENSP] & ~sensN) | sensN);
 
   if (!ads->isContReading()) {
     serial->print(OPENBCI_CMD_LOFF_SUCCESS_MSG);
