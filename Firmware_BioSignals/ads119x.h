@@ -18,23 +18,23 @@
 // ---------------------
 // CONFIG BIT MASKS
 // CONFIG 1
-#define ADS119x_REG_CONFIG1_RESERVED 0b00000000
-#define ADS119x_REG_CONFIG1_8KSPS 0b00000000
-#define ADS119x_REG_CONFIG1_4KSPS 0b00000001
-#define ADS119x_REG_CONFIG1_2KSPS 0b00000010
-#define ADS119x_REG_CONFIG1_1KSPS 0b00000011
-#define ADS119x_REG_CONFIG1_500SPS 0b00000100
-#define ADS119x_REG_CONFIG1_250SPS 0b00000101
-#define ADS119x_REG_CONFIG1_125SPS 0b00000110
+#define ADS119X_REG_CONFIG1_RESERVED 0b00000000
+#define ADS119X_REG_CONFIG1_8KSPS 0b00000000
+#define ADS119X_REG_CONFIG1_4KSPS 0b00000001
+#define ADS119X_REG_CONFIG1_2KSPS 0b00000010
+#define ADS119X_REG_CONFIG1_1KSPS 0b00000011
+#define ADS119X_REG_CONFIG1_500SPS 0b00000100
+#define ADS119X_REG_CONFIG1_250SPS 0b00000101
+#define ADS119X_REG_CONFIG1_125SPS 0b00000110
 // CONFIG 2
-#define ADS119x_REG_CONFIG2_RESERVED 0b00100000  /* Reserved bits to set to 1 */
+#define ADS119X_REG_CONFIG2_RESERVED 0b00100000  /* Reserved bits to set to 1 */
 // CONFIG 3
-#define ADS119x_REG_CONFIG3_RESERVED 0b01000000  /* Reserved bits to set to 1 */
+#define ADS119X_REG_CONFIG3_RESERVED 0b01000000  /* Reserved bits to set to 1 */
 // ---------------------
 
-class ADS119x: public ADS129x{
+class ADS119X: public ADS129X{
 public:
-  ADS119x(int cs_pin_set, int drdy_pin_set, int reset_pin_set, SPIClass* spi_set);
+  ADS119X(int cs_pin_set, int drdy_pin_set, int reset_pin_set, SPIClass* spi_set);
   virtual void all_defaults();
   virtual bool read_data();
   virtual uint8_t set_sample_rate(SAMPLE_RATE sr);
