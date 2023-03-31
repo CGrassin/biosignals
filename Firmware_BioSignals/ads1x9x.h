@@ -210,6 +210,11 @@ public:
    * @return True if data was read.
    */
   virtual bool read_data();
+  /** Converts the 24 bits sample to a regular signed 32 bits integer.
+   * @param channelnumber The number of the channel (0 to 7).
+   * @return A signed 32 bits integer.
+   */
+  virtual int32_t get_sample_as_int(uint8_t channelnumber);
   /** Gets a string with the human-readable name of a register.
    * @param _address Address of the register.
    * @return String with the name of the register.
@@ -226,7 +231,7 @@ public:
    * @return The value of the register (for internal use).
    */
   virtual uint8_t set_channel_settings(uint8_t channelnumber, bool powerdown, uint8_t gain, INPUT_TYPE mux, bool bias, bool srb2, bool srb1);
-
+  
   // Abstract functions (IC-specific)
   /** Sets the sample rate for all the channels.
    * @param sr The requested sample rate.

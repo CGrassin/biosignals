@@ -212,14 +212,17 @@ public:
   void readCMD();
 
 private:
-  void startUpMessage();
-  void testSignals(uint8_t config2, bool shorted);
-  static bool isSingleCharCmd(char cmd);
+  // Process commands
   void processCMD();
   void processCMDChannelSet();
   void processCMDQuery();
   void processCMDSampleRate();
   void processCMDImpedance();
+  void testSignals(uint8_t config2, bool shorted);
+  void startUpMessage();
+  static bool isSingleCharCmd(char cmd);
+
+  // Helper functions
   void printHex(byte _data);
   uint8_t getChannelFromCommand(char asciiChar);
   const char * getSampleRate();

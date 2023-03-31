@@ -146,6 +146,17 @@ bool ADS1X9X::read_data() {
   }
   return false;
 }
+
+int32_t ADS1X9X::get_sample_as_int(uint8_t channelnumber){
+  int32_t output = (this->data[0 + channelnumber] << 16) |
+                   (this->data[1 + channelnumber] << 8)  |
+                   this->data[2 + channelnumber];
+  if ((output & 0x00800000) > 0) {  
+    output |= 0xFF000000;  
+  }
+  return output;
+}
+
 const char * ADS1X9X::getRegisterName(uint8_t _address){
   switch (_address) {
     case ADS1X9X_REG_ID: return "ADS_ID";
