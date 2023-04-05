@@ -33,7 +33,7 @@ void OpenBCI::startUpMessage(){
 void OpenBCI::sendData(uint8_t* value) {
   sample_counter ++;
   if(sample_counter % downsampling_factor)
-    return;
+    return; // TODO implement anti-aliasing filter
   serial->write((char)PCKT_START);
   serial->write(package_counter);
   for (int i = 0; i < 8 * 3; i++)

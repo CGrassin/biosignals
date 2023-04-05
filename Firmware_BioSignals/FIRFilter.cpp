@@ -1,11 +1,22 @@
 #include "FIRFilter.h"
 
-FIRFilter::FIRFilter(int* filter_taps, unsigned char filter_taps_number) {
-  this->filter_taps = filter_taps;
-  this->filter_taps_number = filter_taps_number;
+FIRFilter::FIRFilter(int* filter_taps, unsigned char filter_taps_number) : filter_taps(filter_taps), filter_taps_number(filter_taps_number), last_index(0)
+{
+  // Allocate memory for the filter history buffer
+  this->history = new int[filter_taps_number];
+  
+  // Copy the filter taps into the class
+  // this->filter_taps = new int[filter_taps_number];
+  // memcpy(this->filter_taps, filter_taps, filter_taps_number * sizeof(int));
   this->init();
 }
 
+FIRFilter::~FIRFilter() {
+    // Free memory allocated for the filter history buffer and taps array
+    delete[] history;
+    //delete[] filter_taps;
+}
+    
 void FIRFilter::init() {
   for(int i = 0; i < filter_taps_number; ++i)
     this->history[i] = 0;
@@ -27,3 +38,9 @@ int FIRFilter::get(){
   };
   return acc >> 16;
 }
+
+int FIRFilter::get(int value){
+  this->put(value);
+  return this->get();
+}
+
